@@ -1,0 +1,29 @@
+{
+  "name": "demofrontend",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel": "^2.4.1"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@mui/lab": "^5.0.0-alpha.79",
+    "@mui/material": "^5.6.1",
+    "@mui/x-date-pickers": "^5.0.0-alpha.2",
+    "@types/date-fns": "^2.6.0",
+    "@types/react-plotly.js": "^2.5.0",
+    "date-fns": "^2.28.0",
+    "plotly.js": "^2.11.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-plotly.js": "^2.5.1",
+    "typescript": "^4.6.3"
+  }
+}

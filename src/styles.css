@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
+
+@media (max-width: 999px) {
+    #grid-container > div {
+        margin: 2vw
+    }
+
+    .js-plotly-plot { /*Fix for zero height plots on render*/
+        width: 100%;
+        height: 100%;
+        min-height: 30vh;
+    }
+}
+
+@media (min-width: 1000px) {
+    #root-container {
+        height: 100vh;
+        width: 100vw;
+        padding: 2vh;
+    }
+
+    #grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        grid-gap: 2vh;
+        grid-template-areas:
+    "raw-data raw-data config"
+    "anomalies anomaly-score anomaly-score"
+    "prototypes prototypes features";
+        height: 100%;
+    }
+
+    #raw-data {
+        grid-area: raw-data;
+    }
+
+    #config {
+        grid-area: config;
+    }
+
+    #anomaly-score {
+        grid-area: anomaly-score;
+    }
+
+    #anomalies {
+        grid-area: anomalies;
+    }
+
+    #prototypes {
+        grid-area: prototypes;
+    }
+
+    #features {
+        grid-area: features;
+    }
+}
+
+#grid-container > div {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    box-sizing: border-box;
+    color: rgba(255, 255, 255, 0.87);
+    border: 1px solid rgba(255, 255, 255, 0);
+    transition: border 0.5s ease-in-out;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#grid-container > div:hover {
+    border: 1px solid gray;
+}
+
+h2 {
+    color: rgba(255, 255, 255, 0.9);
+    /*Light Theme: */
+    /*color: rgba(0,0,0,0.9);*/
+}

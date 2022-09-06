@@ -74,7 +74,7 @@ export function App() {
         setTimestamps([]);
         setTimeseries({});
 
-        fetch(BASE_URL + "/building/" + buildingName + "/sensors")
+        fetch(BASE_URL + "/buildings/" + buildingName + "/sensors")
             .then(res => res.json())
             .then(
                 (result) => {
@@ -85,7 +85,7 @@ export function App() {
                 }
             )
 
-        fetch(BASE_URL + "/building/" + buildingName + "/timestamps")
+        fetch(BASE_URL + "/buildings/" + buildingName + "/timestamps")
             .then(res => res.json())
             .then(
                 (result) => {
@@ -114,7 +114,7 @@ export function App() {
             }
 
             setPendingUpdates(c => c + 1);
-            fetch(BASE_URL + "/building/" + building + "/sensor/" + s.type)
+            fetch(BASE_URL + "/buildings/" + building + "/sensors/" + s.type)
                 .then(res => res.json())
                 .then(
                     (result) => {

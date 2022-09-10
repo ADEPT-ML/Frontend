@@ -42,7 +42,7 @@ export type DateRange = {
 
 export type TimeSeries = Record<string, number[] | undefined>;
 
-const BASE_URL = "http://localhost";
+const BASE_URL = "http://localhost:8000";
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 const LIGHT_THEME = false;
 const darkTheme = createTheme({

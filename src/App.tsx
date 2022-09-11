@@ -8,6 +8,7 @@ import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import Config from "./components/Config";
 import Prototypes from "./components/Prototypes";
+import { v4 as uuidv4 } from 'uuid';
 
 export type Algorithm = {
     name: string;
@@ -50,6 +51,16 @@ const darkTheme = createTheme({
         mode: LIGHT_THEME ? "light" : "dark",
     }
 })
+const UUID = getOrSetUuid();
+
+export function getOrSetUuid() {
+    let local_uuid = localStorage.getItem("uuid");
+    if(!local_uuid) {
+        local_uuid = uuidv4();
+        localStorage.setItem("uuid", local_uuid);
+    }
+    return local_uuid;
+}
 
 export function App() {
     const [buildings, setBuildings] = useState<string[]>([]);
@@ -170,14 +181,17 @@ export function App() {
 
     function findAnomalies() {
         setCalculatingAnomalies(true);
-        let url = new URL("/calculate/anomalies", BASE_URL);
+        let url = new URL("/calculate/anomalies", BASE_URL); //TODO uuid
         url.searchParams.set("algo", String(algorithm!.id));
         url.searchParams.set("building", building);
         url.searchParams.set("sensors", selectedSensors.map(s => s.type).join(";"));
         url.searchParams.set("start", dateRange.start!.toISOString());
         url.searchParams.set("stop", dateRange.end!.toISOString());
+        const options = {
+            headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+        }
 
-        fetch(url.toString())
+        fetch(url.toString(), options)
             .then(res => res.json())
             .then(
                 (result) => {

@@ -50,11 +50,14 @@ function prepareLayout(colors: string[], lightTheme: boolean) {
 function FeatureAttributionPlot(props: AttributionProps) {
     const [attributions, setAttributions] = useState<Attribution[] | null>(null);
     const [loading, setLoading] = useState(false);
+    const options = {
+        headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+    }
 
     useEffect(() => {
         if (props.anomalyID === 0 || !props.algorithm.explainable) return;
         setLoading(true);
-        fetch(props.baseURL + "/calculate/feature-attribution?anomaly=" + props.anomalyID)
+        fetch(props.baseURL + "/calculate/feature-attribution?anomaly=" + props.anomalyID, options) //TODO uuid
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! Status: ${res.status}`);

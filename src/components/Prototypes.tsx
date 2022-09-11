@@ -79,11 +79,14 @@ function Prototypes(props: PrototypesProps) {
     const [pData, setPData] = useState<PrototypeResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
+    const options = {
+        headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+    }
 
     useEffect(() => {
         if (props.anomalyID === 0) return;
         setLoading(true);
-        fetch(props.baseURL + "/calculate/prototypes?anomaly=" + props.anomalyID)
+        fetch(props.baseURL + "/calculate/prototypes?anomaly=" + props.anomalyID, options) //TODO uuid
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! Status: ${res.status}`);

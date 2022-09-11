@@ -57,7 +57,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
     useEffect(() => {
         if (props.anomalyID === 0 || !props.algorithm.explainable) return;
         setLoading(true);
-        fetch(props.baseURL + "/calculate/feature-attribution?anomaly=" + props.anomalyID, options) //TODO uuid
+        fetch(props.baseURL + "/calculate/feature-attribution?anomaly=" + props.anomalyID, options)
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! Status: ${res.status}`);

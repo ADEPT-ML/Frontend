@@ -181,7 +181,7 @@ export function App() {
 
     function findAnomalies() {
         setCalculatingAnomalies(true);
-        let url = new URL("/calculate/anomalies", BASE_URL); //TODO uuid
+        let url = new URL("/calculate/anomalies", BASE_URL);
         url.searchParams.set("algo", String(algorithm!.id));
         url.searchParams.set("building", building);
         url.searchParams.set("sensors", selectedSensors.map(s => s.type).join(";"));

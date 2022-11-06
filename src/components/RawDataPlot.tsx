@@ -4,6 +4,7 @@ import {Alert, useTheme} from "@mui/material";
 import {Sensor, TimeSeries} from "../App";
 
 type RawDataProps = {
+    showRetry: boolean;
     showHint: boolean;
     timestamps: string[];
     timeseries: TimeSeries;
@@ -81,7 +82,12 @@ function renderPlot(timestamps: string[], timeseries: TimeSeries, sensors: Senso
 }
 
 function RawDataPlot(props: RawDataProps) {
-    if (props.showHint) {
+    if(props.showRetry) {
+        return <Alert severity="error" variant="outlined">
+            Buildings could not be loaded ... retrying fetch
+        </Alert>
+    }
+    else if (props.showHint) {
         return <Alert severity="info" variant="outlined">
             Please select both a building and a sensor.
         </Alert>

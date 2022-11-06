@@ -77,6 +77,8 @@ export function App() {
     const [pendingUpdates, setPendingUpdates] = useState<number>(0);
     const [dateRange, setDateRange] = useState<DateRange>({max: null, min: null, start: null, end: null});
     const [error, setError] = useState(null);
+    const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
+    const [showRetry, setShowRetry] = useState(false);
 
     function handleBuildingChange(buildingName: string) {
         setBuilding(buildingName);
@@ -250,11 +252,24 @@ export function App() {
             .then(
                 (result) => {
                     setBuildings(result["buildings"]);
+                    setShowRetry(false);
                 },
                 (error) => {
-                    setError(error);
+                    let timer = setTimeout(() => {
+                        setShowRetry(true);
+                        console.log('Error fetching, re-trying to fetch');                               
+                        setErrorFetchedChecker((c: any) => !c);
+                    }, 5000);
+
+                    // clear Timeout
+                    return () => {
+                        clearTimeout(timer);
+                    };              
                 }
-            )
+            );
+    }, [errorFetchedChecker]);
+
+    useEffect(() => {
         fetch(BASE_URL + "/algorithms")
             .then(res => res.json())
             .then(
@@ -293,6 +308,7 @@ export function App() {
                         </div>
                         <div id="raw-data">
                             <RawDataPlot
+                                showRetry={showRetry}
                                 showHint={building === "" || selectedSensors.length < 1}
                                 timestamps={timestamps}
                                 timeseries={timeseries}

@@ -57,7 +57,7 @@ type AlgorithmConfigProps = {
 }
 
 function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: string, value: boolean) => void) {
-    return <FormGroup>
+    return <FormGroup key={setting.id}>
         <FormControlLabel
             control={<Switch
                 checked={value}
@@ -122,7 +122,7 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
         result.push(validation.msg);
     }
 
-    return <Stack>{result}</Stack>;
+    return <Stack key={setting.id}>{result}</Stack>;
 }
 
 function buildOptionSetting(setting: OptionSetting,
@@ -144,7 +144,7 @@ function buildOptionSetting(setting: OptionSetting,
         }
     }
 
-    return <>
+    return <React.Fragment key={setting.id}>
         <FormControl fullWidth>
             <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
             <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
@@ -153,7 +153,7 @@ function buildOptionSetting(setting: OptionSetting,
             </Select>
         </FormControl>
         {settings}
-    </>;
+    </React.Fragment>;
 }
 
 function buildMenu(config: AlgorithmConfiguration,

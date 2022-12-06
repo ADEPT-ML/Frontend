@@ -6,9 +6,10 @@ import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
-import Config from "./components/Config";
+import Config from "./components/Configuration/Config";
 import Prototypes from "./components/Prototypes";
-import { v4 as uuidv4 } from 'uuid';
+import {AlgorithmConfiguration, buildDefaultMap} from "./components/Configuration/AlgorithmConfig";
+import {v4 as uuidv4} from 'uuid';
 
 export type Algorithm = {
     name: string;
@@ -55,7 +56,7 @@ const UUID = getOrSetUuid();
 
 export function getOrSetUuid() {
     let local_uuid = localStorage.getItem("uuid");
-    if(!local_uuid) {
+    if (!local_uuid) {
         local_uuid = uuidv4();
         localStorage.setItem("uuid", local_uuid);
     }
@@ -79,6 +80,42 @@ export function App() {
     const [error, setError] = useState(null);
     const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
     const [showRetry, setShowRetry] = useState(false);
+
+    const mockAlgoConfig: AlgorithmConfiguration = {
+        "settings": [{
+            "id": "id",
+            "name": "opt_name",
+            "type": "Option",
+            "default": "name",
+            "options": [{
+                "name": "name",
+                "settings": [{
+                    "id": "test",
+                    "name": "name",
+                    "type": "Numeric",
+                    "docstring": "Hallo Welt",
+                    "default": 1.0,
+                    "step": 0.1,
+                    "lowBound": 0.8
+                }, {
+                    "id": "tog_id",
+                    "name": "Toggle me",
+                    "type": "Toggle",
+                    "docstring": "This can be \"toggled\"",
+                    "default": false
+                }]
+            }, {"name": "name2", "settings": []}]
+        }, {
+            "id": "test2",
+            "name": "name2",
+            "type": "Numeric",
+            "docstring": "Hallo Welt2",
+            "default": 165.4,
+            "step": 0.1,
+            "lowBound": -0.9
+        }, {"id": "tog_id2", "name": "Also toggle me", "type": "Toggle", "default": false}]
+    };
+    const [algoConfigResult, setAlgoConfigResult] = useState<Record<string, string | number | boolean>>(buildDefaultMap(mockAlgoConfig))
 
     function handleBuildingChange(buildingName: string) {
         setBuilding(buildingName);
@@ -257,14 +294,14 @@ export function App() {
                 (error) => {
                     let timer = setTimeout(() => {
                         setShowRetry(true);
-                        console.log('Error fetching, re-trying to fetch');                               
+                        console.log('Error fetching, re-trying to fetch');
                         setErrorFetchedChecker((c: any) => !c);
                     }, 5000);
 
                     // clear Timeout
                     return () => {
                         clearTimeout(timer);
-                    };              
+                    };
                 }
             );
     }, [errorFetchedChecker]);
@@ -304,6 +341,11 @@ export function App() {
                                 onSensorChange={handleSensorChange}
                                 onAlgorithmChange={handleAlgorithmChange}
                                 onFindAnomalies={findAnomalies}
+                                algoConfig={mockAlgoConfig}
+                                algo_config_result={algoConfigResult}
+                                onAlgoConfigChange={(id, value) => setAlgoConfigResult(r => {
+                                    return {...r, [id]: value};
+                                })}
                             />
                         </div>
                         <div id="raw-data">

@@ -97,15 +97,15 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
     }
 
     function onFieldChange(field_value: string) {
-        if (validate(field_value).result) {
-            onChange(setting.id, Number(field_value));
-        }
         changeTemp(field_value);
     }
 
-    function onBlur() {
+    function onBlur(field_value: string) {
         if (!validate(tempValue).result) {
             changeTemp(String(value));
+        }
+        else {
+            onChange(setting.id, Number(field_value));
         }
     }
 
@@ -116,7 +116,7 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
                       value={tempValue}
                       error={!validation.result}
                       helperText={validation.result ? null : validation.msg}
-                      onBlur={onBlur}
+                      onBlur={e => onBlur(e.target.value)}
     />
 }
 

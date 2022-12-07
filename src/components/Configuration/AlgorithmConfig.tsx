@@ -111,7 +111,7 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
 
     const validation = validate(tempValue);
 
-    return <TextField label={setting.name} variant={"outlined"}
+    return <TextField label={setting.name} variant={"outlined"} fullWidth
                       onChange={e => onFieldChange(e.target.value)}
                       value={tempValue}
                       error={!validation.result}

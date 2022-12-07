@@ -13,7 +13,8 @@ import {
     Select,
     Stack,
     Switch,
-    TextField
+    TextField,
+    Tooltip
 } from "@mui/material";
 import {Close} from '@mui/icons-material';
 
@@ -63,18 +64,22 @@ type AlgorithmConfigProps = {
     onChange: (id: string, value: ValueType) => void;
 }
 
-function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: string, value: boolean) => void) {
-    return <FormGroup>
-        <FormControlLabel
-            control={<Switch
-                checked={value}
-                onChange={e => onChange(setting.id, e.target.checked)}
-            />}
-            label={setting.name}/>
-    </FormGroup>;
-}
-
+const tooltip_delay = 500;
 const temp_suffix = "__temp__"
+
+function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: string, value: boolean) => void) {
+    return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
+        <FormGroup>
+            <FormControlLabel
+                control={
+                    <Switch
+                        checked={value}
+                        onChange={e => onChange(setting.id, e.target.checked)}
+                    />}
+                label={setting.name}/>
+        </FormGroup>
+    </Tooltip>;
+}
 
 function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
                       onChange: (id: string, value: ValueType) => void) {
@@ -119,13 +124,15 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
 
     const validation = validate(tempValue);
 
-    return <TextField label={setting.name} variant={"outlined"} fullWidth
-                      onChange={e => onFieldChange(e.target.value)}
-                      value={tempValue}
-                      error={!validation.result}
-                      helperText={validation.result ? null : validation.msg}
-                      onBlur={e => onBlur(e.target.value)}
-    />
+    return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
+        <TextField label={setting.name} variant={"outlined"} fullWidth
+                   onChange={e => onFieldChange(e.target.value)}
+                   value={tempValue}
+                   error={!validation.result}
+                   helperText={validation.result ? null : validation.msg}
+                   onBlur={e => onBlur(e.target.value)}
+        />
+    </Tooltip>
 }
 
 function buildOptionSetting(setting: OptionSetting,
@@ -151,13 +158,15 @@ function buildOptionSetting(setting: OptionSetting,
     }
 
     return <Stack spacing={"10px"}>
-        <FormControl fullWidth>
-            <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
-            <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
-                    onChange={e => onChange(setting.id, e.target.value)}>
-                {elements}
-            </Select>
-        </FormControl>
+        <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
+            <FormControl fullWidth>
+                <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
+                <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
+                        onChange={e => onChange(setting.id, e.target.value)}>
+                    {elements}
+                </Select>
+            </FormControl>
+        </Tooltip>
         {settings.length > 0 ? <Divider/> : null}
         {settings}
     </Stack>;

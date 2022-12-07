@@ -86,6 +86,7 @@ export function App() {
             "id": "id",
             "name": "opt_name",
             "type": "Option",
+            "docstring": "This is a longer docstring to test the behavior of such longer docstrings.",
             "default": "name",
             "options": [{
                 "name": "name",
@@ -97,6 +98,12 @@ export function App() {
                     "default": 1.0,
                     "step": 0.1,
                     "lowBound": 0.8
+                }, {
+                    "id": "abcd",
+                    "name": "AnotherValue",
+                    "type": "Numeric",
+                    "default": 14.0,
+                    "step": 0.1
                 }, {
                     "id": "tog_id",
                     "name": "Toggle me",

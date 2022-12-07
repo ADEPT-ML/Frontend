@@ -126,6 +126,7 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
 
     return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
         <TextField label={setting.name} variant={"outlined"} fullWidth
+                   inputProps={{"maxlength": 10}}
                    onChange={e => onFieldChange(e.target.value)}
                    value={tempValue}
                    error={!validation.result}

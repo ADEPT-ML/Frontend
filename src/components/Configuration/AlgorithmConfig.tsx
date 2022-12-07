@@ -143,7 +143,7 @@ function buildOptionSetting(setting: OptionSetting,
         }
     }
 
-    return <>
+    return <Stack spacing={"10px"}>
         <FormControl fullWidth>
             <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
             <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
@@ -151,8 +151,9 @@ function buildOptionSetting(setting: OptionSetting,
                 {elements}
             </Select>
         </FormControl>
-        <Stack spacing={"10px"} sx={{paddingTop: "10px"}}>{settings}</Stack>
-    </>;
+        {settings.length > 0 ? <Divider/> : null}
+        {settings}
+    </Stack>;
 }
 
 function buildMenu(config: AlgorithmConfiguration,

@@ -67,11 +67,13 @@ function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: stri
     </FormGroup>;
 }
 
+const temp_suffix = "__temp__"
+
 function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
                       onChange: (id: string, value: ValueType) => void) {
 
     function changeTemp(newVal: string) {
-        onChange(setting.id + "_temp", newVal);
+        onChange(setting.id + temp_suffix, newVal);
     }
 
     function validate(field_value: string): { result: boolean, msg?: string } {
@@ -103,8 +105,7 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
     function onBlur(field_value: string) {
         if (!validate(tempValue).result) {
             changeTemp(String(value));
-        }
-        else {
+        } else {
             onChange(setting.id, Number(field_value));
         }
     }
@@ -136,7 +137,8 @@ function buildOptionSetting(setting: OptionSetting,
             const element = buildToggle(sub_setting, result[sub_setting.id] as boolean, onChange);
             settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>)
         } else if (sub_setting.type === "Numeric") {
-            const element = buildNumeric(sub_setting, result[sub_setting.id] as number, result[sub_setting.id + "_temp"] as string, onChange);
+            const element = buildNumeric(sub_setting, result[sub_setting.id] as number, result[sub_setting.id + temp_suffix] as string,
+                onChange);
             settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>);
         }
     }
@@ -164,7 +166,7 @@ function buildMenu(config: AlgorithmConfiguration,
         if (setting.type === "Toggle") {
             elements.push(buildToggle(setting, result[setting.id] as boolean, onChange));
         } else if (setting.type === "Numeric") {
-            elements.push(buildNumeric(setting, result[setting.id] as number, result[setting.id + "_temp"] as string, onChange));
+            elements.push(buildNumeric(setting, result[setting.id] as number, result[setting.id + temp_suffix] as string, onChange));
         } else if (setting.type === "Option") {
             elements.push(buildOptionSetting(setting, result, onChange));
         }
@@ -181,14 +183,14 @@ export function buildDefaultMap(config: AlgorithmConfiguration): Record<string, 
     for (const setting of config.settings) {
         result[setting.id] = setting.default;
         if (setting.type === "Numeric") {
-            result[setting.id + "_temp"] = setting.default;
+            result[setting.id + temp_suffix] = setting.default;
         }
         if (setting.type === "Option") {
             for (const option of setting.options) {
                 for (const nested_setting of option.settings) {
                     result[nested_setting.id] = nested_setting.default;
                     if (nested_setting.type === "Numeric") {
-                        result[nested_setting.id + "_temp"] = nested_setting.default;
+                        result[nested_setting.id + temp_suffix] = nested_setting.default;
                     }
                 }
             }

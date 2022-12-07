@@ -152,7 +152,7 @@ function buildOptionSetting(setting: OptionSetting,
                 {elements}
             </Select>
         </FormControl>
-        {settings}
+        <Stack spacing={"10px"} sx={{paddingTop: "10px"}}>{settings}</Stack>
     </React.Fragment>;
 }
 

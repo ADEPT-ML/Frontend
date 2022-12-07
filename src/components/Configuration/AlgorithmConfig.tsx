@@ -1,14 +1,21 @@
 import * as React from "react";
 import {
     Dialog,
-    DialogTitle, Divider,
+    DialogTitle,
+    Divider,
     FormControl,
     FormControlLabel,
     FormGroup,
-    InputLabel, MenuItem, Paper,
-    Select, Stack,
-    Switch, TextField
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Stack,
+    Switch,
+    TextField
 } from "@mui/material";
+import {Close} from '@mui/icons-material';
 
 type Setting = {
     id: string;
@@ -202,7 +209,17 @@ export function buildDefaultMap(config: AlgorithmConfiguration): Record<string, 
 export default function AlgorithmConfig(props: AlgorithmConfigProps) {
     return <Dialog open={props.isOpen} onClose={props.onClose} PaperProps={{elevation: 2, sx: {padding: "5px"}}}
                    fullWidth>
-        <DialogTitle>Configure detection algorithm</DialogTitle>
+        <DialogTitle>Configure detection algorithm
+            <IconButton
+                sx={{
+                    position: "absolute",
+                    right: 10,
+                    top: 18,
+                }}
+                onClick={props.onClose}>
+                <Close/>
+            </IconButton>
+        </DialogTitle>
         <Divider/>
         {buildMenu(props.config, props.config_result, props.onChange)}
     </Dialog>;

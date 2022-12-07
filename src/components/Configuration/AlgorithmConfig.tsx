@@ -57,7 +57,7 @@ type AlgorithmConfigProps = {
 }
 
 function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: string, value: boolean) => void) {
-    return <FormGroup key={setting.id}>
+    return <FormGroup>
         <FormControlLabel
             control={<Switch
                 checked={value}
@@ -110,19 +110,16 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
     }
 
     const validation = validate(tempValue);
-    let result = []
-    result.push(<TextField label={setting.name} variant={"outlined"}
-                           onChange={e => onFieldChange(e.target.value)}
-                           value={tempValue}
-                           error={!validation.result}
-                           onBlur={onBlur}
-    />);
 
-    if (!validation.result) {
-        result.push(validation.msg);
-    }
-
-    return <Stack key={setting.id}>{result}</Stack>;
+    return <Stack>
+        <TextField label={setting.name} variant={"outlined"}
+                   onChange={e => onFieldChange(e.target.value)}
+                   value={tempValue}
+                   error={!validation.result}
+                   onBlur={onBlur}
+        />
+        {validation.result ? null : validation.msg}
+    </Stack>;
 }
 
 function buildOptionSetting(setting: OptionSetting,
@@ -131,20 +128,22 @@ function buildOptionSetting(setting: OptionSetting,
     let settings = [];
     const value = result[setting.id] as string;
     for (const option of setting.options) {
-        elements.push(<MenuItem value={option.name}>{option.name}</MenuItem>);
+        elements.push(<MenuItem key={option.name} value={option.name}>{option.name}</MenuItem>);
     }
 
     const selectedOption = setting.options.find(s => s.name === value)!;
 
     for (const sub_setting of selectedOption.settings) {
         if (sub_setting.type === "Toggle") {
-            settings.push(buildToggle(sub_setting, result[sub_setting.id] as boolean, onChange));
+            const element = buildToggle(sub_setting, result[sub_setting.id] as boolean, onChange);
+            settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>)
         } else if (sub_setting.type === "Numeric") {
-            settings.push(buildNumeric(sub_setting, result[sub_setting.id] as number, result[sub_setting.id + "_temp"] as string, onChange));
+            const element = buildNumeric(sub_setting, result[sub_setting.id] as number, result[sub_setting.id + "_temp"] as string, onChange);
+            settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>);
         }
     }
 
-    return <React.Fragment key={setting.id}>
+    return <>
         <FormControl fullWidth>
             <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
             <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
@@ -153,14 +152,16 @@ function buildOptionSetting(setting: OptionSetting,
             </Select>
         </FormControl>
         <Stack spacing={"10px"} sx={{paddingTop: "10px"}}>{settings}</Stack>
-    </React.Fragment>;
+    </>;
 }
 
 function buildMenu(config: AlgorithmConfiguration,
                    result: Record<string, ValueType>,
                    onChange: (id: string, value: ValueType) => void) {
     let elements = [];
+    let keys: string[] = [];
     for (const setting of config.settings) {
+        keys.push(setting.id);
         if (setting.type === "Toggle") {
             elements.push(buildToggle(setting, result[setting.id] as boolean, onChange));
         } else if (setting.type === "Numeric") {
@@ -170,7 +171,10 @@ function buildMenu(config: AlgorithmConfiguration,
         }
     }
 
-    return elements.map(e => <Paper elevation={8} sx={{padding: "15px", margin: "10px"}}>{e}</Paper>);
+    return elements.map((e, index) =>
+        <Paper key={keys[index]} elevation={8} sx={{padding: "15px", margin: "10px"}}>
+            {e}
+        </Paper>);
 }
 
 export function buildDefaultMap(config: AlgorithmConfiguration): Record<string, ValueType> {

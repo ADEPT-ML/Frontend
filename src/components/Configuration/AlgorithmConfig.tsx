@@ -111,15 +111,13 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
 
     const validation = validate(tempValue);
 
-    return <Stack>
-        <TextField label={setting.name} variant={"outlined"}
-                   onChange={e => onFieldChange(e.target.value)}
-                   value={tempValue}
-                   error={!validation.result}
-                   onBlur={onBlur}
-        />
-        {validation.result ? null : validation.msg}
-    </Stack>;
+    return <TextField label={setting.name} variant={"outlined"}
+                      onChange={e => onFieldChange(e.target.value)}
+                      value={tempValue}
+                      error={!validation.result}
+                      helperText={validation.result ? null : validation.msg}
+                      onBlur={onBlur}
+    />
 }
 
 function buildOptionSetting(setting: OptionSetting,

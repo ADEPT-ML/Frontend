@@ -193,7 +193,7 @@ function buildMenu(config: AlgorithmConfiguration,
     }
 
     return elements.map((e, index) =>
-        <Paper key={keys[index]} elevation={8} sx={{padding: "15px", margin: "10px"}}>
+        <Paper key={keys[index]} elevation={4} sx={{padding: "15px", margin: "10px"}}>
             {e}
         </Paper>);
 }
@@ -220,7 +220,7 @@ export function buildDefaultMap(config: AlgorithmConfiguration): Record<string, 
 }
 
 export default function AlgorithmConfig(props: AlgorithmConfigProps) {
-    return <Dialog open={props.isOpen} onClose={props.onClose} PaperProps={{elevation: 2, sx: {padding: "5px"}}}
+    return <Dialog open={props.isOpen} onClose={props.onClose} PaperProps={{elevation: 3, sx: {padding: "5px"}}}
                    fullWidth>
         <DialogTitle>Configure detection algorithm
             <IconButton

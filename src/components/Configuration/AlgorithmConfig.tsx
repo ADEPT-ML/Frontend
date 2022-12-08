@@ -11,10 +11,12 @@ import {
     MenuItem,
     Paper,
     Select,
+    Slider,
     Stack,
     Switch,
     TextField,
-    Tooltip
+    Tooltip,
+    Typography
 } from "@mui/material";
 import {Close} from '@mui/icons-material';
 
@@ -125,11 +127,29 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
         }
     }
 
+    if (setting.lowBound !== undefined && setting.highBound !== undefined) {
+        const stepCount = (setting.highBound - setting.lowBound) / setting.step;
+        if (stepCount <= 1000) {
+            return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
+                <Stack direction={"row"} spacing={"15px"}>
+                    <Typography marginTop={"3px"}>{setting.name}</Typography>
+                    <Slider
+                        value={value}
+                        min={setting.lowBound}
+                        max={setting.highBound}
+                        step={setting.step}
+                        onChange={(e, val) => onChange(setting.id, val as number)}
+                        valueLabelDisplay="auto"/>
+                </Stack>
+            </Tooltip>
+        }
+    }
+
     const validation = validate(tempValue);
 
     return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
         <TextField label={setting.name} variant={"outlined"} fullWidth
-                   inputProps={{"maxlength": 10}}
+                   inputProps={{"maxLength": 10}}
                    onChange={e => onFieldChange(e.target.value)}
                    value={tempValue}
                    error={!validation.result}

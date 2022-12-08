@@ -118,7 +118,10 @@ function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
         if (!validate(tempValue).result) {
             changeTemp(String(value));
         } else {
-            onChange(setting.id, Number(field_value));
+            let newVal: number = Number(field_value);
+            newVal = Math.round(newVal / setting.step) * setting.step;
+            onChange(setting.id, newVal);
+            changeTemp(String(newVal));
         }
     }
 

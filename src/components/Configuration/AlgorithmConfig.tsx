@@ -45,41 +45,39 @@ export type ValueType = string | number | boolean
 
 type AlgorithmConfigProps = {
     config: AlgorithmConfiguration;
-    config_result: Record<string, ValueType>;
     isOpen: boolean;
     onClose: () => void;
-    onChange: (id: string, value: ValueType) => void;
+    setValue: (id: string, value: ValueType) => void;
+    getValue: (id: string) => ValueType;
 }
 
 const tooltip_delay = 500;
 const temp_suffix = "__temp__"
 
-function buildMenu(config: AlgorithmConfiguration,
-                   result: Record<string, ValueType>,
-                   onChange: (id: string, value: ValueType) => void) {
+function buildMenu(props: AlgorithmConfigProps) {
     let elements = [];
     let keys: string[] = [];
-    for (const setting of config.settings) {
+    for (const setting of props.config.settings) {
         keys.push(setting.id);
         if (setting.type === "Toggle") {
-            const toggle = <ConfigToggle setting={setting} value={result[setting.id] as boolean}
-                                         onChange={onChange}
+            const toggle = <ConfigToggle setting={setting} value={props.getValue(setting.id) as boolean}
+                                         onChange={props.setValue}
                                          tooltipDelay={tooltip_delay}/>;
             elements.push(toggle);
         } else if (setting.type === "Numeric") {
             const numeric = <ConfigNumeric setting={setting}
-                                           value={result[setting.id] as number}
-                                           tempValue={result[setting.id + temp_suffix] as string}
-                                           onChange={onChange}
-                                           onChangeTemp={((id, value) => onChange(id + temp_suffix, value))}
+                                           value={props.getValue(setting.id) as number}
+                                           tempValue={props.getValue(setting.id + temp_suffix) as string}
+                                           onChange={props.setValue}
+                                           onChangeTemp={((id, value) => props.setValue(id + temp_suffix, value))}
                                            tooltipDelay={tooltip_delay}/>;
             elements.push(numeric);
         } else if (setting.type === "Option") {
             const option = <ConfigOption setting={setting}
-                                         result={result}
-                                         onChange={onChange}
-                                         onChangeTemp={((id, value) => onChange(id + temp_suffix, value))}
-                                         getTempValue={(id) => result[id + temp_suffix] as string}
+                                         onChange={props.setValue}
+                                         onChangeTemp={((id, value) => props.setValue(id + temp_suffix, value))}
+                                         getValue={props.getValue}
+                                         getTempValue={(id) => props.getValue(id + temp_suffix) as string}
                                          tooltipDelay={tooltip_delay}/>;
             elements.push(option);
         }
@@ -127,6 +125,6 @@ export default function AlgorithmConfig(props: AlgorithmConfigProps) {
             </IconButton>
         </DialogTitle>
         <Divider/>
-        {buildMenu(props.config, props.config_result, props.onChange)}
+        {buildMenu(props)}
     </Dialog>;
 }

@@ -8,13 +8,14 @@ import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import Config from "./components/Configuration/Config";
 import Prototypes from "./components/Prototypes";
-import {AlgorithmConfiguration, buildDefaultMap} from "./components/Configuration/AlgorithmConfig";
+import {AlgorithmConfiguration, buildDefaultMap, ValueType} from "./components/Configuration/AlgorithmConfig";
 import {v4 as uuidv4} from 'uuid';
 
 export type Algorithm = {
     name: string;
     id: number;
     explainable: boolean;
+    config: AlgorithmConfiguration;
 }
 
 export type Sensor = {
@@ -80,49 +81,8 @@ export function App() {
     const [error, setError] = useState(null);
     const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
     const [showRetry, setShowRetry] = useState(false);
-
-    const mockAlgoConfig: AlgorithmConfiguration = {
-        "settings": [{
-            "id": "id",
-            "name": "opt_name",
-            "type": "Option",
-            "docstring": "This is a longer docstring to test the behavior of such longer docstrings.",
-            "default": "name",
-            "options": [{
-                "name": "name",
-                "settings": [{
-                    "id": "test",
-                    "name": "name",
-                    "type": "Numeric",
-                    "docstring": "Hallo Welt",
-                    "default": 1.0,
-                    "step": 0.1,
-                    "lowBound": 0.8
-                }, {
-                    "id": "abcd",
-                    "name": "AnotherValue",
-                    "type": "Numeric",
-                    "default": 14.0,
-                    "step": 0.1
-                }, {
-                    "id": "tog_id",
-                    "name": "Toggle me",
-                    "type": "Toggle",
-                    "docstring": "This can be \"toggled\"",
-                    "default": false
-                }]
-            }, {"name": "name2", "settings": []}]
-        }, {
-            "id": "test2",
-            "name": "name2",
-            "type": "Numeric",
-            "docstring": "Hallo Welt2",
-            "default": 165.4,
-            "step": 0.1,
-            "lowBound": -0.9
-        }, {"id": "tog_id2", "name": "Also toggle me", "type": "Toggle", "default": false}]
-    };
-    const [algoConfigResult, setAlgoConfigResult] = useState<Record<string, string | number | boolean>>(buildDefaultMap(mockAlgoConfig))
+    const [algoConfigResult, setAlgoConfigResult] =
+        useState<Record<number, Record<string, ValueType>>>({}) //Algorithm ID: Setting map
 
     function handleBuildingChange(buildingName: string) {
         setBuilding(buildingName);
@@ -318,7 +278,13 @@ export function App() {
             .then(res => res.json())
             .then(
                 (result) => {
-                    setAlgorithms(result["algorithms"]);
+                    const algos: Algorithm[] = result["algorithms"];
+                    setAlgorithms(algos);
+                    let results: Record<number, Record<string, ValueType>> = {};
+                    for (const algo of algos) {
+                        results[algo.id] = buildDefaultMap(algo.config);
+                    }
+                    setAlgoConfigResult(results);
                 },
                 (error) => {
                     setError(error);
@@ -348,8 +314,8 @@ export function App() {
                                 onSensorChange={handleSensorChange}
                                 onAlgorithmChange={handleAlgorithmChange}
                                 onFindAnomalies={findAnomalies}
-                                algoConfig={mockAlgoConfig}
-                                algo_config_result={algoConfigResult}
+                                algoConfig={algorithm === null ? null : algorithm.config}
+                                algo_config_result={algorithm === null ? null : algoConfigResult[algorithm.id]}
                                 onAlgoConfigChange={(id, value) => setAlgoConfigResult(r => {
                                     return {...r, [id]: value};
                                 })}

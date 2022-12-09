@@ -6,9 +6,9 @@ import {OptionSetting, ValueType} from "./AlgorithmConfig";
 
 type ConfigOptionProps = {
     setting: OptionSetting;
-    result: Record<string, ValueType>;
     onChange: (id: string, value: ValueType) => void;
     onChangeTemp: (id: string, value: ValueType) => void;
+    getValue: (id: string) => ValueType;
     getTempValue: (id: string) => string;
     tooltipDelay: number;
 }
@@ -16,7 +16,7 @@ type ConfigOptionProps = {
 export default function ConfigOption(props: ConfigOptionProps) {
     let elements = [];
     let settings = [];
-    const value = props.result[props.setting.id] as string;
+    const value = props.getValue(props.setting.id) as string;
     for (const option of props.setting.options) {
         elements.push(<MenuItem key={option.name} value={option.name}>{option.name}</MenuItem>);
     }
@@ -26,12 +26,12 @@ export default function ConfigOption(props: ConfigOptionProps) {
     for (const sub_setting of selectedOption.settings) {
         if (sub_setting.type === "Toggle") {
             const toggle = <ConfigToggle key={sub_setting.id} setting={sub_setting}
-                                         value={props.result[sub_setting.id] as boolean}
+                                         value={props.getValue(sub_setting.id) as boolean}
                                          onChange={props.onChange} tooltipDelay={props.tooltipDelay}/>;
             settings.push(toggle);
         } else if (sub_setting.type === "Numeric") {
             const numeric = <ConfigNumeric key={sub_setting.id} setting={sub_setting}
-                                           value={props.result[sub_setting.id] as number}
+                                           value={props.getValue(sub_setting.id) as number}
                                            tempValue={props.getTempValue(sub_setting.id)}
                                            onChange={props.onChange}
                                            onChangeTemp={props.onChangeTemp}

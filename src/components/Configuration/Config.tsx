@@ -35,8 +35,8 @@ type ConfigProps = {
     onSensorChange: (selectedSensors: Sensor[]) => void;
     onAlgorithmChange: (newAlgorithm: Algorithm) => void;
     onFindAnomalies: () => void;
-    algoConfig: AlgorithmConfiguration;
-    algo_config_result: Record<string, string | number | boolean>;
+    algoConfig: AlgorithmConfiguration | null;
+    algo_config_result: Record<string, string | number | boolean> | null;
     onAlgoConfigChange: (id: string, value: string | number | boolean) => void;
 }
 
@@ -74,6 +74,10 @@ function multiSensorSelect(sensors: Sensor[], selectedSensors: Sensor[], disable
             })}
         </Select>
     </FormControl>
+}
+
+function algoConfigVisible(props: ConfigProps): boolean {
+    return props.algoConfig !== null && props.algoConfig.settings.length > 0;
 }
 
 export default function Config(props: ConfigProps) {
@@ -117,11 +121,12 @@ export default function Config(props: ConfigProps) {
                         value={props.selectedAlgorithm ? JSON.stringify(props.selectedAlgorithm) : ""}
                         disabled={props.algorithms.length === 0 || props.calculating}
                         onChange={e => props.onAlgorithmChange(JSON.parse(e.target.value) as Algorithm)}
-                        endAdornment={
-                        <IconButton sx={{"marginRight": "15px"}} aria-label="Algorithm settings" onClick={() => setAlgorithmConfigOpen(true)}>
-                            <Settings/>
-                        </IconButton>
-                    }
+                        endAdornment={algoConfigVisible(props) ?
+                            <IconButton sx={{"marginRight": "15px"}} aria-label="Algorithm settings"
+                                        onClick={() => setAlgorithmConfigOpen(true)}>
+                                <Settings/>
+                            </IconButton> : null
+                        }
                     >
                         {props.algorithms.map(a => <MenuItem value={JSON.stringify(a)} key={a.id}>{a.name}</MenuItem>)}
                     </Select>
@@ -168,11 +173,14 @@ export default function Config(props: ConfigProps) {
                 Find Anomalies
             </LoadingButton>
         </Stack>
-        <AlgorithmConfig
-            isOpen={algorithmConfigOpen}
-            onClose={() => setAlgorithmConfigOpen(false)}
-            onChange={props.onAlgoConfigChange}
-            config={props.algoConfig}
-            config_result={props.algo_config_result}/>
+        {algoConfigVisible(props) ?
+            <AlgorithmConfig
+                isOpen={algorithmConfigOpen}
+                onClose={() => setAlgorithmConfigOpen(false)}
+                setValue={props.onAlgoConfigChange}
+                config={props.algoConfig!}
+                getValue={(id) => props.algo_config_result![id]}/> : null
+        }
+
     </>
 }

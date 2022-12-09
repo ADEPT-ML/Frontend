@@ -1,24 +1,9 @@
 import * as React from "react";
-import {
-    Dialog,
-    DialogTitle,
-    Divider,
-    FormControl,
-    FormControlLabel,
-    FormGroup,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    Paper,
-    Select,
-    Slider,
-    Stack,
-    Switch,
-    TextField,
-    Tooltip,
-    Typography
-} from "@mui/material";
+import {Dialog, DialogTitle, Divider, IconButton, Paper} from "@mui/material";
 import {Close} from '@mui/icons-material';
+import ConfigToggle from "./ConfigToggle";
+import ConfigNumeric from "./ConfigNumeric";
+import ConfigOption from "./ConfigOption";
 
 type Setting = {
     id: string;
@@ -26,7 +11,7 @@ type Setting = {
     docstring?: string;
 }
 
-type NumericSetting = Setting & {
+export type NumericSetting = Setting & {
     type: "Numeric";
     default: number;
     step: number;
@@ -34,7 +19,7 @@ type NumericSetting = Setting & {
     highBound?: number;
 }
 
-type ToggleSetting = Setting & {
+export type ToggleSetting = Setting & {
     type: "Toggle";
     default: boolean;
 }
@@ -44,7 +29,7 @@ type Option = {
     settings: (NumericSetting | ToggleSetting)[];
 }
 
-type OptionSetting = Setting & {
+export type OptionSetting = Setting & {
     type: "Option";
     default: string;
     options: Option[];
@@ -56,7 +41,7 @@ export type AlgorithmConfiguration = {
     settings: AnySetting[];
 }
 
-type ValueType = string | number | boolean
+export type ValueType = string | number | boolean
 
 type AlgorithmConfigProps = {
     config: AlgorithmConfiguration;
@@ -69,133 +54,6 @@ type AlgorithmConfigProps = {
 const tooltip_delay = 500;
 const temp_suffix = "__temp__"
 
-function buildToggle(setting: ToggleSetting, value: boolean, onChange: (id: string, value: boolean) => void) {
-    return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
-        <FormGroup>
-            <FormControlLabel
-                control={
-                    <Switch
-                        checked={value}
-                        onChange={e => onChange(setting.id, e.target.checked)}
-                    />}
-                label={setting.name}/>
-        </FormGroup>
-    </Tooltip>;
-}
-
-function buildNumeric(setting: NumericSetting, value: number, tempValue: string,
-                      onChange: (id: string, value: ValueType) => void) {
-
-    function changeTemp(newVal: string) {
-        onChange(setting.id + temp_suffix, newVal);
-    }
-
-    function validate(field_value: string): { result: boolean, msg?: string } {
-        if (field_value === "") {
-            return {result: false, msg: "Please enter a value."};
-        }
-
-        const float_regex = /^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/;
-        if (!float_regex.test(field_value)) {
-            return {result: false, msg: "Must be a number."};
-        }
-
-        const num_val = Number(field_value);
-
-        if (setting.lowBound !== undefined && num_val < setting.lowBound) {
-            return {result: false, msg: "Can not be less than " + setting.lowBound};
-        }
-        if (setting.highBound !== undefined && num_val > setting.highBound) {
-            return {result: false, msg: "Can not be more than " + setting.highBound};
-        }
-
-        return {result: true};
-    }
-
-    function onFieldChange(field_value: string) {
-        changeTemp(field_value);
-    }
-
-    function onBlur(field_value: string) {
-        if (!validate(tempValue).result) {
-            changeTemp(String(value));
-        } else {
-            let newVal: number = Number(field_value);
-            newVal = Math.round(newVal / setting.step) * setting.step;
-            onChange(setting.id, newVal);
-            changeTemp(String(newVal));
-        }
-    }
-
-    if (setting.lowBound !== undefined && setting.highBound !== undefined) {
-        const stepCount = (setting.highBound - setting.lowBound) / setting.step;
-        if (stepCount <= 1000) {
-            return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
-                <Stack direction={"row"} spacing={"15px"}>
-                    <Typography marginTop={"3px"}>{setting.name}</Typography>
-                    <Slider
-                        value={value}
-                        min={setting.lowBound}
-                        max={setting.highBound}
-                        step={setting.step}
-                        onChange={(e, val) => onChange(setting.id, val as number)}
-                        valueLabelDisplay="auto"/>
-                </Stack>
-            </Tooltip>
-        }
-    }
-
-    const validation = validate(tempValue);
-
-    return <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
-        <TextField label={setting.name} variant={"outlined"} fullWidth
-                   inputProps={{"maxLength": 10}}
-                   onChange={e => onFieldChange(e.target.value)}
-                   value={tempValue}
-                   error={!validation.result}
-                   helperText={validation.result ? null : validation.msg}
-                   onBlur={e => onBlur(e.target.value)}
-        />
-    </Tooltip>
-}
-
-function buildOptionSetting(setting: OptionSetting,
-                            result: Record<string, ValueType>, onChange: (id: string, value: ValueType) => void) {
-    let elements = [];
-    let settings = [];
-    const value = result[setting.id] as string;
-    for (const option of setting.options) {
-        elements.push(<MenuItem key={option.name} value={option.name}>{option.name}</MenuItem>);
-    }
-
-    const selectedOption = setting.options.find(s => s.name === value)!;
-
-    for (const sub_setting of selectedOption.settings) {
-        if (sub_setting.type === "Toggle") {
-            const element = buildToggle(sub_setting, result[sub_setting.id] as boolean, onChange);
-            settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>)
-        } else if (sub_setting.type === "Numeric") {
-            const element = buildNumeric(sub_setting, result[sub_setting.id] as number, result[sub_setting.id + temp_suffix] as string,
-                onChange);
-            settings.push(<React.Fragment key={sub_setting.id}>{element}</React.Fragment>);
-        }
-    }
-
-    return <Stack spacing={"10px"}>
-        <Tooltip title={setting.docstring} enterDelay={tooltip_delay}>
-            <FormControl fullWidth>
-                <InputLabel id={setting.id + "-label"}>{setting.name}</InputLabel>
-                <Select labelId={setting.id + "-label"} id={setting.id} value={value} label={setting.name}
-                        onChange={e => onChange(setting.id, e.target.value)}>
-                    {elements}
-                </Select>
-            </FormControl>
-        </Tooltip>
-        {settings.length > 0 ? <Divider/> : null}
-        {settings}
-    </Stack>;
-}
-
 function buildMenu(config: AlgorithmConfiguration,
                    result: Record<string, ValueType>,
                    onChange: (id: string, value: ValueType) => void) {
@@ -204,11 +62,26 @@ function buildMenu(config: AlgorithmConfiguration,
     for (const setting of config.settings) {
         keys.push(setting.id);
         if (setting.type === "Toggle") {
-            elements.push(buildToggle(setting, result[setting.id] as boolean, onChange));
+            const toggle = <ConfigToggle setting={setting} value={result[setting.id] as boolean}
+                                         onChange={onChange}
+                                         tooltipDelay={tooltip_delay}/>;
+            elements.push(toggle);
         } else if (setting.type === "Numeric") {
-            elements.push(buildNumeric(setting, result[setting.id] as number, result[setting.id + temp_suffix] as string, onChange));
+            const numeric = <ConfigNumeric setting={setting}
+                                           value={result[setting.id] as number}
+                                           tempValue={result[setting.id + temp_suffix] as string}
+                                           onChange={onChange}
+                                           onChangeTemp={((id, value) => onChange(id + temp_suffix, value))}
+                                           tooltipDelay={tooltip_delay}/>;
+            elements.push(numeric);
         } else if (setting.type === "Option") {
-            elements.push(buildOptionSetting(setting, result, onChange));
+            const option = <ConfigOption setting={setting}
+                                         result={result}
+                                         onChange={onChange}
+                                         onChangeTemp={((id, value) => onChange(id + temp_suffix, value))}
+                                         getTempValue={(id) => result[id + temp_suffix] as string}
+                                         tooltipDelay={tooltip_delay}/>;
+            elements.push(option);
         }
     }
 

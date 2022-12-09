@@ -117,13 +117,16 @@ export default function Config(props: ConfigProps) {
                         value={props.selectedAlgorithm ? JSON.stringify(props.selectedAlgorithm) : ""}
                         disabled={props.algorithms.length === 0 || props.calculating}
                         onChange={e => props.onAlgorithmChange(JSON.parse(e.target.value) as Algorithm)}
+                        endAdornment={
+                        <IconButton sx={{"marginRight": "15px"}} aria-label="Algorithm settings" onClick={() => setAlgorithmConfigOpen(true)}>
+                            <Settings/>
+                        </IconButton>
+                    }
                     >
                         {props.algorithms.map(a => <MenuItem value={JSON.stringify(a)} key={a.id}>{a.name}</MenuItem>)}
                     </Select>
                 </FormControl>
-                <IconButton aria-label="Algorithm settings" onClick={() => setAlgorithmConfigOpen(true)}>
-                    <Settings/>
-                </IconButton>
+
             </Stack>
 
             <LocalizationProvider dateAdapter={AdapterDateFns} locale={deLocale}>

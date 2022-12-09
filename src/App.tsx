@@ -8,7 +8,12 @@ import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import Config from "./components/Configuration/Config";
 import Prototypes from "./components/Prototypes";
-import {AlgorithmConfiguration, buildDefaultMap, ValueType} from "./components/Configuration/AlgorithmConfig";
+import {
+    AlgorithmConfiguration,
+    buildDefaultMap,
+    prepareMapToSend,
+    ValueType
+} from "./components/Configuration/AlgorithmConfig";
 import {v4 as uuidv4} from 'uuid';
 
 export type Algorithm = {
@@ -193,6 +198,10 @@ export function App() {
         url.searchParams.set("sensors", selectedSensors.map(s => s.type).join(";"));
         url.searchParams.set("start", dateRange.start!.toISOString());
         url.searchParams.set("stop", dateRange.end!.toISOString());
+
+        const configMap = prepareMapToSend(algoConfigResult[algorithm!.id]);
+        url.searchParams.set("config", JSON.stringify(configMap));
+
         const options = {
             headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
         }

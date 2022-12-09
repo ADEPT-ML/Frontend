@@ -110,6 +110,17 @@ export function buildDefaultMap(config: AlgorithmConfiguration): Record<string, 
     return result;
 }
 
+export function prepareMapToSend(map: Record<string, ValueType>) {
+    let result: Record<string, ValueType> = {};
+    for (const entry in map) {
+        if (entry.endsWith(temp_suffix)) {
+            continue;
+        }
+        result[entry] = map[entry];
+    }
+    return result;
+}
+
 export default function AlgorithmConfig(props: AlgorithmConfigProps) {
     return <Dialog open={props.isOpen} onClose={props.onClose} PaperProps={{elevation: 3, sx: {padding: "5px"}}}
                    fullWidth>

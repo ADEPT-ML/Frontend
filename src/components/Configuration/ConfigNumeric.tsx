@@ -53,7 +53,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     if (props.setting.lowBound !== undefined && props.setting.highBound !== undefined) {
         const stepCount = (props.setting.highBound - props.setting.lowBound) / props.setting.step;
         if (stepCount <= 1000) {
-            return <Tooltip title={props.setting.docstring} enterDelay={props.tooltipDelay}>
+            return <Tooltip title={props.setting.description} enterDelay={props.tooltipDelay}>
                 <Stack direction={"row"} spacing={"15px"}>
                     <Typography marginTop={"3px"}>{props.setting.name}</Typography>
                     <Slider
@@ -70,7 +70,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
 
     const validation = validate(props.tempValue);
 
-    return <Tooltip title={props.setting.docstring} enterDelay={props.tooltipDelay}>
+    return <Tooltip title={props.setting.description} enterDelay={props.tooltipDelay}>
         <TextField label={props.setting.name} variant={"outlined"} fullWidth
                    inputProps={{"maxLength": 10}}
                    onChange={e => onFieldChange(e.target.value)}

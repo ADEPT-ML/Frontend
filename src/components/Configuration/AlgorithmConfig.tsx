@@ -8,7 +8,7 @@ import ConfigOption from "./ConfigOption";
 type Setting = {
     id: string;
     name: string;
-    docstring?: string;
+    description?: string;
 }
 
 export type NumericSetting = Setting & {

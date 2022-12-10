@@ -41,7 +41,7 @@ export default function ConfigOption(props: ConfigOptionProps) {
     }
 
     return <Stack spacing={"10px"}>
-        <Tooltip title={props.setting.docstring} enterDelay={props.tooltipDelay}>
+        <Tooltip title={props.setting.description} enterDelay={props.tooltipDelay}>
             <FormControl fullWidth>
                 <InputLabel id={props.setting.id + "-label"}>{props.setting.name}</InputLabel>
                 <Select labelId={props.setting.id + "-label"} id={props.setting.id} value={value}

@@ -10,7 +10,7 @@ type ConfigToggleProps = {
 }
 
 export default function ConfigToggle(props: ConfigToggleProps) {
-    return <Tooltip title={props.setting.docstring} enterDelay={props.tooltipDelay}>
+    return <Tooltip title={props.setting.description} enterDelay={props.tooltipDelay}>
         <FormGroup>
             <FormControlLabel
                 control={

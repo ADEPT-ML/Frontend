@@ -184,6 +184,13 @@ export function App() {
         setDateRange({...dateRange, start: start, end: end});
     }
 
+    function handleAlgorithmConfigChange(id: string, value: ValueType) {
+        const oldConfig = algoConfigResult[algorithm!.id];
+        const newConfig = {...oldConfig, [id]: value};
+        const newMap = {...algoConfigResult, [algorithm!.id]: newConfig};
+        setAlgoConfigResult(newMap);
+    }
+
 
     function canFindAnomalies() {
         return !pendingUpdates && building !== "" && selectedSensors.length > 0 && algorithm !== null &&
@@ -325,9 +332,7 @@ export function App() {
                                 onFindAnomalies={findAnomalies}
                                 algoConfig={algorithm === null ? null : algorithm.config}
                                 algo_config_result={algorithm === null ? null : algoConfigResult[algorithm.id]}
-                                onAlgoConfigChange={(id, value) => setAlgoConfigResult(r => {
-                                    return {...r, [id]: value};
-                                })}
+                                onAlgoConfigChange={handleAlgorithmConfigChange}
                             />
                         </div>
                         <div id="raw-data">

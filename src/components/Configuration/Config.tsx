@@ -111,7 +111,7 @@ export default function Config(props: ConfigProps) {
             {multiSensorSelect(props.sensors, props.selectedSensors,
                 props.sensors.length === 0 || props.calculating, props.onSensorChange)}
 
-            <Stack direction={"row"} spacing={1}>
+            <Stack direction={"row"}>
                 <FormControl size={"small"} fullWidth>
                     <InputLabel id="model-label">Algorithm</InputLabel>
                     <Select
@@ -121,17 +121,16 @@ export default function Config(props: ConfigProps) {
                         value={props.selectedAlgorithm ? JSON.stringify(props.selectedAlgorithm) : ""}
                         disabled={props.algorithms.length === 0 || props.calculating}
                         onChange={e => props.onAlgorithmChange(JSON.parse(e.target.value) as Algorithm)}
-                        endAdornment={algoConfigVisible(props) ?
-                            <IconButton sx={{"marginRight": "15px"}} aria-label="Algorithm settings"
-                                        onClick={() => setAlgorithmConfigOpen(true)}>
-                                <Settings/>
-                            </IconButton> : null
-                        }
                     >
                         {props.algorithms.map(a => <MenuItem value={JSON.stringify(a)} key={a.id}>{a.name}</MenuItem>)}
                     </Select>
                 </FormControl>
-
+                {!algoConfigVisible(props) ? null :
+                    <IconButton sx={{"marginLeft": "-75px"}} aria-label="Algorithm settings"
+                                onClick={() => setAlgorithmConfigOpen(true)}>
+                        <Settings/>
+                    </IconButton>
+                }
             </Stack>
 
             <LocalizationProvider dateAdapter={AdapterDateFns} locale={deLocale}>

@@ -51,8 +51,8 @@ export default function AnomalyTable(props: AnomalyTableProps) {
 
     function table() {
         return (
-            <Paper sx={{width: "100%", maxHeight: "100%", overflowY: "auto"}} elevation={2}>
-                <TableContainer>
+            <Paper sx={{width: "100%", height: "100%", position: "relative", overflow: "hidden"}} elevation={2}>
+                <TableContainer className={css.slimScrollbar} sx={{position: "absolute", top: 0, bottom: 0}} >
                     <Table stickyHeader size="small">
                         <TableHead>
                             <TableRow>

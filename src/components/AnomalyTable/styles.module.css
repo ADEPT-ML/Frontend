@@ -19,3 +19,8 @@
     align-items: center;
     justify-content: center;
 }
+
+.slimScrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #c3c3c3 #232323;
+}

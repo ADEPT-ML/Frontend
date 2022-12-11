@@ -45,8 +45,8 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         } else {
             let newVal: number = Number(field_value);
             newVal = Math.round(newVal / props.setting.step) * props.setting.step;
-            props.onChange(props.setting.id, newVal);
             props.onChangeTemp(props.setting.id, String(newVal));
+            props.onChange(props.setting.id, newVal);
         }
     }
 

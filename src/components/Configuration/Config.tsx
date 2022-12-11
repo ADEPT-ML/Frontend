@@ -127,6 +127,7 @@ export default function Config(props: ConfigProps) {
                 </FormControl>
                 {!algoConfigVisible(props) ? null :
                     <IconButton sx={{"marginLeft": "-75px"}} aria-label="Algorithm settings"
+                                disabled={props.calculating}
                                 onClick={() => setAlgorithmConfigOpen(true)}>
                         <Settings/>
                     </IconButton>

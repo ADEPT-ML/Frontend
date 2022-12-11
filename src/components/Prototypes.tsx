@@ -1,6 +1,7 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import Plot from "react-plotly.js"
+import Plotly from "plotly.js-basic-dist-min";
+import createPlotlyComponent from "react-plotly.js/factory";
 import {Alert, CircularProgress, useTheme} from "@mui/material";
 
 type PrototypesProps = {
@@ -112,6 +113,7 @@ function Prototypes(props: PrototypesProps) {
         Please select an anomaly above to display an example-based explanation.
     </Alert>;
     if (loading || pData === null) return <CircularProgress/>;
+    const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot
             data={[

@@ -1,6 +1,7 @@
 import * as React from "react";
-import Plot from "react-plotly.js";
 import {useTheme} from "@mui/material";
+import createPlotlyComponent from "react-plotly.js/factory";
+import Plotly from "plotly.js-basic-dist-min";
 
 type AnomalyScoreProps = {
     timestamps: string[];
@@ -57,6 +58,7 @@ function lineShape(threshold: number, color: string) {
 export default function AnomalyScorePlot(props: AnomalyScoreProps) {
     const theme = useTheme();
     const preparedLayout = prepareLayout(props.lightTheme);
+    const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot
             data={[

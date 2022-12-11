@@ -1,5 +1,6 @@
 import * as React from "react";
-import Plot from "react-plotly.js"
+import Plotly from "plotly.js-basic-dist-min";
+import createPlotlyComponent from "react-plotly.js/factory";
 import {Alert, useTheme} from "@mui/material";
 import {Sensor, TimeSeries} from "../App";
 
@@ -71,6 +72,7 @@ function prepareData(timestamps: string[], timeseries: TimeSeries, sensors: Sens
 
 function renderPlot(timestamps: string[], timeseries: TimeSeries, sensors: Sensor[], colors: string[],
                     lightTheme: boolean) {
+    const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot
             data={prepareData(timestamps, timeseries, sensors)}

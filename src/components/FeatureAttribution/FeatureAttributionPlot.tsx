@@ -1,6 +1,7 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import Plot from "react-plotly.js";
+import Plotly from "plotly.js-basic-dist-min";
+import createPlotlyComponent from "react-plotly.js/factory";
 import * as css from "./styles.module.css"
 import {Alert, CircularProgress, Theme, useTheme} from "@mui/material";
 import {Algorithm} from "../../App";
@@ -83,6 +84,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
 
     function plotElement() {
         if (loading || attributions === null) return <CircularProgress/>;
+        const Plot = createPlotlyComponent(Plotly);
         return <Plot
             data={attributions.map(a => ({
                 x: [a.contribution],

@@ -2,7 +2,7 @@ import * as React from "react";
 import {useEffect, useState} from "react";
 import Plot from "react-plotly.js";
 import * as css from "./styles.module.css"
-import {Alert, CircularProgress, useTheme} from "@mui/material";
+import {Alert, CircularProgress, Theme, useTheme} from "@mui/material";
 import {Algorithm} from "../../App";
 
 type AttributionProps = {
@@ -20,8 +20,7 @@ type Attribution = {
 
 const plotConfig = {responsive: true, displayModeBar: false}
 
-function prepareLayout(colors: string[], lightTheme: boolean) {
-    const theme = useTheme();
+function prepareLayout(theme: Theme, colors: string[], lightTheme: boolean) {
     let clrs = [theme.palette.primary.dark, theme.palette.secondary.dark];
     clrs.push(...colors);
     return {
@@ -50,6 +49,7 @@ function prepareLayout(colors: string[], lightTheme: boolean) {
 function FeatureAttributionPlot(props: AttributionProps) {
     const [attributions, setAttributions] = useState<Attribution[] | null>(null);
     const [loading, setLoading] = useState(false);
+    const theme = useTheme();
     const options = {
         headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
     }
@@ -95,7 +95,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
                 name: a.name,
                 hovertemplate: "%{x:.2f}%"
             }))}
-            layout={prepareLayout(props.additionalColors, props.lightTheme)}
+            layout={prepareLayout(theme, props.additionalColors, props.lightTheme)}
             config={plotConfig}
             className={css.plot}
         />

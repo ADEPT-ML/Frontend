@@ -133,7 +133,7 @@ export default function Config(props: ConfigProps) {
                 }
             </Stack>
 
-            <LocalizationProvider dateAdapter={AdapterDateFns} locale={deLocale}>
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={deLocale}>
                 <Stack direction="row" justifyContent="space-between" spacing={1}>
                     <DatePicker
                         label="Start date"

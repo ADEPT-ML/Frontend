@@ -52,7 +52,7 @@ export type TimeSeries = Record<string, number[] | undefined>;
 
 const BASE_URL = "http://localhost:8000";
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
-const LIGHT_THEME = false;
+const LIGHT_THEME = window.matchMedia('(prefers-color-scheme: light)').matches;
 const darkTheme = createTheme({
     palette: {
         mode: LIGHT_THEME ? "light" : "dark",

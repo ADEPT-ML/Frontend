@@ -139,6 +139,10 @@
 
 h2 {
     color: rgba(255, 255, 255, 0.9);
-    /*Light Theme: */
-    /*color: rgba(0,0,0,0.9);*/
+}
+
+@media screen and (prefers-color-scheme: light) {
+    h2 {
+        color: rgba(0,0,0,0.9);
+    }
 }

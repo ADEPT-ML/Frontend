@@ -5,7 +5,7 @@ import RawDataPlot from "./components/RawDataPlot";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
-import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
+import {Theme, createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import Config from "./components/Configuration/Config";
 import Prototypes from "./components/Prototypes";
 import {
@@ -52,12 +52,6 @@ export type TimeSeries = Record<string, number[] | undefined>;
 
 const BASE_URL = "http://localhost:8000";
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
-const LIGHT_THEME = window.matchMedia('(prefers-color-scheme: light)').matches;
-const darkTheme = createTheme({
-    palette: {
-        mode: LIGHT_THEME ? "light" : "dark",
-    }
-})
 const UUID = getOrSetUuid();
 
 export function getOrSetUuid() {
@@ -70,6 +64,8 @@ export function getOrSetUuid() {
 }
 
 export function App() {
+    const [lightMode, setTheme] = useState(false);
+    const [darkTheme, setDarkTheme] = useState<Theme>(createTheme({palette: {mode: "dark",}}));
     const [buildings, setBuildings] = useState<string[]>([]);
     const [building, setBuilding] = useState<string>("");
     const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -86,8 +82,7 @@ export function App() {
     const [error, setError] = useState(null);
     const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
     const [showRetry, setShowRetry] = useState(false);
-    const [algoConfigResult, setAlgoConfigResult] =
-        useState<Record<number, Record<string, ValueType>>>({}) //Algorithm ID: Setting map
+    const [algoConfigResult, setAlgoConfigResult] = useState<Record<number, Record<string, ValueType>>>({}) //Algorithm ID: Setting map
 
     function handleBuildingChange(buildingName: string) {
         setBuilding(buildingName);
@@ -237,7 +232,7 @@ export function App() {
                     timestamps={anomalyResponse.timestamps}
                     errors={anomalyResponse.error}
                     threshold={anomalyResponse.threshold}
-                    lightTheme={LIGHT_THEME}
+                    lightTheme={lightMode}
                 />
             </div>
             <div id="anomalies">
@@ -251,7 +246,7 @@ export function App() {
                 <Prototypes
                     anomalyID={selectedAnomalyIndex}
                     baseURL={BASE_URL}
-                    lightTheme={LIGHT_THEME}
+                    lightTheme={lightMode}
                 />
             </div>
             <div id="features">
@@ -260,11 +255,19 @@ export function App() {
                     baseURL={BASE_URL}
                     anomalyID={selectedAnomalyIndex}
                     additionalColors={ADD_GRAPH_COLORS}
-                    lightTheme={LIGHT_THEME}
+                    lightTheme={lightMode}
                 />
             </div>
         </>
     }
+
+    useEffect(() => {
+        window.matchMedia('(prefers-color-scheme: light)')
+            .addEventListener('change', event => {
+                setTheme(event.matches);
+                setDarkTheme(createTheme({palette: {mode: event.matches ? "light" : "dark",}}));
+            });
+    }, []);
 
     useEffect(() => {
         fetch(BASE_URL + "/buildings")
@@ -306,7 +309,7 @@ export function App() {
                     setError(error);
                 }
             )
-    }, [])
+    }, []);
 
     return (
         <React.StrictMode>
@@ -343,7 +346,7 @@ export function App() {
                                 timeseries={timeseries}
                                 sensors={selectedSensors}
                                 additionalColors={ADD_GRAPH_COLORS}
-                                lightTheme={LIGHT_THEME}
+                                lightTheme={lightMode}
                             />
                         </div>
                         {anomalySection()}

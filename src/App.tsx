@@ -8,6 +8,7 @@ import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import {Theme, createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import Config from "./components/Configuration/Config";
 import Prototypes from "./components/Prototypes";
+import ErrorSnackbar from "./components/ErrorSnackbar";
 import {
     AlgorithmConfiguration,
     buildDefaultMap,
@@ -50,6 +51,11 @@ export type DateRange = {
 
 export type TimeSeries = Record<string, number[] | undefined>;
 
+export type SnackDetails = {
+    severity: string;
+    message: string;
+}
+
 const BASE_URL = "http://localhost:8000";
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 const UUID = getOrSetUuid();
@@ -79,10 +85,55 @@ export function App() {
     const [calculatingAnomalies, setCalculatingAnomalies] = useState<boolean>(false);
     const [pendingUpdates, setPendingUpdates] = useState<number>(0);
     const [dateRange, setDateRange] = useState<DateRange>({max: null, min: null, start: null, end: null});
-    const [error, setError] = useState(null);
     const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
-    const [showRetry, setShowRetry] = useState(false);
     const [algoConfigResult, setAlgoConfigResult] = useState<Record<number, Record<string, ValueType>>>({}) //Algorithm ID: Setting map
+    const [snackDetails, setSnackDetails] = useState<SnackDetails>(null)
+
+    function handleApiError(response: Response) {
+        let severity: string;
+        if (response.status < 300) {
+            severity = "info";
+        } else if (response.status < 500) {
+            severity = "warning";
+        } else if (response.status < 600) {
+            severity = "error";
+        } else {
+            console.log(`Status code: ${response.status}`);
+        }
+
+        response.json().then(x => setSnackDetails({severity: severity, message: x["detail"]}));
+    }
+
+    function handleNetworkError() {
+        setSnackDetails({
+            severity: "error",
+            message: "Network Error: Something is wrong with the connection to the server."
+        });
+    }
+
+    function makeNetworkFetch(url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) {
+        function validateNetworkPromise(response: Response) {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                handleApiError(response);
+                onError();
+                throw new Error();
+            }
+        }
+
+        if ("string" === typeof url) {
+            url = BASE_URL + url
+        }
+
+        fetch(url, header)
+            .then(response => validateNetworkPromise(response))
+            .then(result => action(result))
+            .catch(() => {
+                handleNetworkError();
+                onError();
+            });
+    }
 
     function handleBuildingChange(buildingName: string) {
         setBuilding(buildingName);
@@ -91,35 +142,24 @@ export function App() {
         setTimestamps([]);
         setTimeseries({});
 
-        fetch(BASE_URL + "/buildings/" + buildingName + "/sensors")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setSensors(result["sensors"]);
-                },
-                (error) => {
-                    setError(error);
-                }
-            )
+        const sensor_url = "/buildings/" + buildingName + "/sensors";
+        makeNetworkFetch(sensor_url, (result) => setSensors(result["sensors"]));
 
-        fetch(BASE_URL + "/buildings/" + buildingName + "/timestamps")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    const stamps = result["timestamps"] as string[];
-                    setTimestamps(stamps);
-                    if (stamps.length === 0) return;
-                    setDateRange({
-                        min: new Date(stamps[0]),
-                        start: new Date(stamps[0]),
-                        max: new Date(stamps[stamps.length - 1]),
-                        end: new Date(stamps[stamps.length - 1])
-                    });
-                },
-                (error) => {
-                    setError(error);
-                }
-            )
+        const timestamp_url = "/buildings/" + buildingName + "/timestamps";
+
+        function updateBuildingData(result) {
+            const stamps = result["timestamps"] as string[];
+            setTimestamps(stamps);
+            if (stamps.length === 0) return;
+            setDateRange({
+                min: new Date(stamps[0]),
+                start: new Date(stamps[0]),
+                max: new Date(stamps[stamps.length - 1]),
+                end: new Date(stamps[stamps.length - 1])
+            })
+        }
+
+        makeNetworkFetch(timestamp_url, updateBuildingData);
     }
 
     function handleSensorChange(selected: Sensor[]) {
@@ -131,21 +171,19 @@ export function App() {
             }
 
             setPendingUpdates(c => c + 1);
-            fetch(BASE_URL + "/buildings/" + building + "/sensors/" + s.type)
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        setTimeseries(t => {
-                            return {...t, [s.type]: result["sensor"]}
-                        });
-                        setPendingUpdates(c => c - 1);
-                    },
-                    (error) => {
-                        setError(error);
-                        setPendingUpdates(c => c - 1);
-                    }
-                )
+            const sensors_url = "/buildings/" + building + "/sensors/" + s.type
+            const addSensorValues = (result) => {
+                setTimeseries(t => {
+                    return {...t, [s.type]: result["sensor"]}
+                });
+                setPendingUpdates(c => c - 1);
+            };
+            makeNetworkFetch(sensors_url, addSensorValues, () => setPendingUpdates(c => c - 1));
         }
+    }
+
+    function hideSnacks() {
+        setSnackDetails(null)
     }
 
     function handleAlgorithmChange(newAlgorithm: Algorithm) {
@@ -208,18 +246,17 @@ export function App() {
             headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
         }
 
-        fetch(url.toString(), options)
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setAnomalyResponse(result);
-                    setSelectedAnomalyIndex(0);
-                    setCalculatingAnomalies(false);
-                },
-                (error) => {
-                    setError(error);
-                }
-            )
+        function setAnomaly(result: AnomalyResponse & JSON) {
+            setAnomalyResponse(result);
+            setSelectedAnomalyIndex(0);
+            setCalculatingAnomalies(false);
+            setSnackDetails({
+                severity: "success",
+                message: `Found ${result.anomalies.length} anomalies.`
+            });
+        }
+
+        makeNetworkFetch(url, setAnomaly, () => setCalculatingAnomalies(false), options)
     }
 
     function anomalySection() {
@@ -270,51 +307,44 @@ export function App() {
     }, []);
 
     useEffect(() => {
-        fetch(BASE_URL + "/buildings")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setBuildings(result["buildings"]);
-                    setShowRetry(false);
-                },
-                (error) => {
-                    let timer = setTimeout(() => {
-                        setShowRetry(true);
-                        console.log('Error fetching, re-trying to fetch');
-                        setErrorFetchedChecker((c: any) => !c);
-                    }, 5000);
+        const action = (result) => {
+            setBuildings(result["buildings"]);
+        };
+        const errorAction = () => {
+            let timer = setTimeout(() => {
+                setErrorFetchedChecker((c: any) => !c);
+            }, 5000);
 
-                    // clear Timeout
-                    return () => {
-                        clearTimeout(timer);
-                    };
-                }
-            );
+            // clear Timeout
+            return () => {
+                clearTimeout(timer);
+            };
+        };
+        makeNetworkFetch("/buildings", action, errorAction);
     }, [errorFetchedChecker]);
 
     useEffect(() => {
-        fetch(BASE_URL + "/algorithms")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    const algos: Algorithm[] = result["algorithms"];
-                    setAlgorithms(algos);
-                    let results: Record<number, Record<string, ValueType>> = {};
-                    for (const algo of algos) {
-                        results[algo.id] = buildDefaultMap(algo.config);
-                    }
-                    setAlgoConfigResult(results);
-                },
-                (error) => {
-                    setError(error);
-                }
-            )
+        const action = (result) => {
+            const algos: Algorithm[] = result["algorithms"];
+            setAlgorithms(algos);
+            let results: Record<number, Record<string, ValueType>> = {};
+            for (const algo of algos) {
+                results[algo.id] = buildDefaultMap(algo.config);
+            }
+            setAlgoConfigResult(results);
+        };
+        makeNetworkFetch("/algorithms", action);
     }, []);
 
     return (
         <React.StrictMode>
             <ThemeProvider theme={darkTheme}>
                 <CssBaseline enableColorScheme/>
+                {snackDetails ?
+                    <ErrorSnackbar
+                        snackDetails={snackDetails}
+                        onClose={hideSnacks}
+                    /> : null}
                 <div id="root-container">
                     <div id="grid-container">
                         <div id="config">
@@ -340,7 +370,6 @@ export function App() {
                         </div>
                         <div id="raw-data">
                             <RawDataPlot
-                                showRetry={showRetry}
                                 showHint={building === "" || selectedSensors.length < 1}
                                 timestamps={timestamps}
                                 timeseries={timeseries}

@@ -12,6 +12,7 @@ type AttributionProps = {
     algorithm: Algorithm
     additionalColors: string[];
     lightTheme: boolean;
+    uuid: string;
 }
 
 type Attribution = {
@@ -52,7 +53,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
     const options = {
-        headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+        headers: new Headers({'uuid': `${props.uuid}`})
     }
 
     useEffect(() => {

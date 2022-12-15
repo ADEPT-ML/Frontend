@@ -61,10 +61,10 @@ const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 const UUID = getOrSetUuid();
 
 export function getOrSetUuid() {
-    let local_uuid = localStorage.getItem("uuid");
+    let local_uuid = sessionStorage.getItem("uuid");
     if (!local_uuid) {
         local_uuid = uuidv4();
-        localStorage.setItem("uuid", local_uuid);
+        sessionStorage.setItem("uuid", local_uuid);
     }
     return local_uuid;
 }
@@ -243,7 +243,7 @@ export function App() {
         url.searchParams.set("config", JSON.stringify(configMap));
 
         const options = {
-            headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+            headers: new Headers({'uuid': `${UUID}`})
         }
 
         function setAnomaly(result: AnomalyResponse & JSON) {
@@ -284,6 +284,7 @@ export function App() {
                     anomalyID={selectedAnomalyIndex}
                     baseURL={BASE_URL}
                     lightTheme={lightMode}
+                    uuid={UUID}
                 />
             </div>
             <div id="features">
@@ -293,6 +294,7 @@ export function App() {
                     anomalyID={selectedAnomalyIndex}
                     additionalColors={ADD_GRAPH_COLORS}
                     lightTheme={lightMode}
+                    uuid={UUID}
                 />
             </div>
         </>

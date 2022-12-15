@@ -8,6 +8,7 @@ type PrototypesProps = {
     anomalyID: number;
     baseURL: string;
     lightTheme: boolean;
+    uuid: string;
 }
 
 type PrototypeResponse = {
@@ -81,7 +82,7 @@ function Prototypes(props: PrototypesProps) {
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
     const options = {
-        headers: new Headers({'uuid': `${localStorage.getItem("uuid")}`})
+        headers: new Headers({'uuid': `${props.uuid}`})
     }
 
     useEffect(() => {

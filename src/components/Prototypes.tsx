@@ -9,6 +9,7 @@ type PrototypesProps = {
     baseURL: string;
     lightTheme: boolean;
     uuid: string;
+    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) => void;
 }
 
 type PrototypeResponse = {
@@ -88,26 +89,16 @@ function Prototypes(props: PrototypesProps) {
     useEffect(() => {
         if (props.anomalyID === 0) return;
         setLoading(true);
-        fetch(props.baseURL + "/calculate/prototypes?anomaly=" + props.anomalyID, options)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! Status: ${res.status}`);
-                }
-                setLoading(false);
-                return res.json();
-            })
-            .then(
-                (result) => {
-                    const ptypes = result["prototypes"];
-                    setPData({
-                        prototype_a: ptypes["prototype a"],
-                        prototype_b: ptypes["prototype b"],
-                        anomaly: ptypes["anomaly"]
-                    });
-                },
-                (error) => {
-                }
-            )
+        const url = "/calculate/prototypes?anomaly=" + props.anomalyID;
+        const action = (result) => {
+            const ptypes = result["prototypes"];
+            setPData({
+                prototype_a: ptypes["prototype a"],
+                prototype_b: ptypes["prototype b"],
+                anomaly: ptypes["anomaly"]
+            });
+        }
+        props.networkFetch(url, action, () => setLoading(false), options);
     }, [props.anomalyID]);
 
     if (props.anomalyID === 0) return <Alert severity="info" variant="outlined">

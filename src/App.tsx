@@ -285,6 +285,7 @@ export function App() {
                     baseURL={BASE_URL}
                     lightTheme={lightMode}
                     uuid={UUID}
+                    networkFetch={makeNetworkFetch}
                 />
             </div>
             <div id="features">
@@ -295,6 +296,7 @@ export function App() {
                     additionalColors={ADD_GRAPH_COLORS}
                     lightTheme={lightMode}
                     uuid={UUID}
+                    networkFetch={makeNetworkFetch}
                 />
             </div>
         </>

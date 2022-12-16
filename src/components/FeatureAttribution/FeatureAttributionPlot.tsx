@@ -13,6 +13,7 @@ type AttributionProps = {
     additionalColors: string[];
     lightTheme: boolean;
     uuid: string;
+    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) => void;
 }
 
 type Attribution = {
@@ -59,28 +60,19 @@ function FeatureAttributionPlot(props: AttributionProps) {
     useEffect(() => {
         if (props.anomalyID === 0 || !props.algorithm.explainable) return;
         setLoading(true);
-        fetch(props.baseURL + "/calculate/feature-attribution?anomaly=" + props.anomalyID, options)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP error! Status: ${res.status}`);
-                }
-                setLoading(false);
-                return res.json();
-            })
-            .then(
-                (result) => {
-                    let newAtts: Attribution[] = [];
-                    for (let a of result["attribution"]) {
-                        newAtts.push({
-                            name: a["name"],
-                            contribution: a["percent"]
-                        })
-                    }
-                    setAttributions(newAtts);
-                },
-                (error) => {
-                }
-            )
+        const url = "/calculate/feature-attribution?anomaly=" + props.anomalyID;
+        const showAttribution = (result) => {
+            let newAtts: Attribution[] = [];
+            for (let a of result["attribution"]) {
+                newAtts.push({
+                    name: a["name"],
+                    contribution: a["percent"]
+                })
+            }
+            setAttributions(newAtts);
+        };
+
+        props.networkFetch(url, showAttribution, () => setLoading(false), options);
     }, [props.anomalyID, props.algorithm]);
 
     function plotElement() {

@@ -13,7 +13,7 @@ type AttributionProps = {
     additionalColors: string[];
     lightTheme: boolean;
     uuid: string;
-    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) => void;
+    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
 }
 
 type Attribution = {
@@ -61,7 +61,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
         if (props.anomalyID === 0 || !props.algorithm.explainable) return;
         setLoading(true);
         const url = "/calculate/feature-attribution?anomaly=" + props.anomalyID;
-        const showAttribution = (result) => {
+        const showAttribution = (result: any) => {
             let newAtts: Attribution[] = [];
             for (let a of result["attribution"]) {
                 newAtts.push({
@@ -70,6 +70,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
                 })
             }
             setAttributions(newAtts);
+            setLoading(false);
         };
 
         props.networkFetch(url, showAttribution, () => setLoading(false), options);

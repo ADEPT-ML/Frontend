@@ -9,7 +9,7 @@ type PrototypesProps = {
     baseURL: string;
     lightTheme: boolean;
     uuid: string;
-    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) => void;
+    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
 }
 
 type PrototypeResponse = {
@@ -90,13 +90,14 @@ function Prototypes(props: PrototypesProps) {
         if (props.anomalyID === 0) return;
         setLoading(true);
         const url = "/calculate/prototypes?anomaly=" + props.anomalyID;
-        const action = (result) => {
+        const action = (result: any) => {
             const ptypes = result["prototypes"];
             setPData({
                 prototype_a: ptypes["prototype a"],
                 prototype_b: ptypes["prototype b"],
                 anomaly: ptypes["anomaly"]
             });
+            setLoading(false);
         }
         props.networkFetch(url, action, () => setLoading(false), options);
     }, [props.anomalyID]);

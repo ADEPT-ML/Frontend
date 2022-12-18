@@ -26,7 +26,7 @@ const headCells = [
     }
 ];
 
-export default function AnomalyTable(props: AnomalyTableProps) {
+function AnomalyTable(props: AnomalyTableProps) {
     const rows = props.anomalies.map((a, i) => (
         {
             id: i + 1,
@@ -107,3 +107,5 @@ export default function AnomalyTable(props: AnomalyTableProps) {
         </div>
     );
 }
+
+export default React.memo(AnomalyTable)

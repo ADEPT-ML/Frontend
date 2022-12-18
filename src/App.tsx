@@ -1,21 +1,17 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
-import "./styles.css"
-import RawDataPlot from "./components/RawDataPlot";
-import AnomalyScorePlot from "./components/AnomalyScorePlot";
-import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
-import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
-import {Theme, createTheme, CssBaseline, ThemeProvider} from "@mui/material";
-import Config from "./components/Configuration/Config";
-import Prototypes from "./components/Prototypes";
-import ErrorSnackbar from "./components/ErrorSnackbar";
-import {
-    AlgorithmConfiguration,
-    buildDefaultMap,
-    prepareMapToSend,
-    ValueType
-} from "./components/Configuration/AlgorithmConfig";
+import {useCallback, useEffect, useMemo, useReducer} from "react";
+import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import {v4 as uuidv4} from 'uuid';
+import "./styles.css"
+import {appDefaultState, appReducer} from "./AppReducer";
+import AnomalyScorePlot from "./components/AnomalyScorePlot";
+import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
+import Config from "./components/Configuration/Config";
+import ErrorSnackbar from "./components/ErrorSnackbar";
+import {AlgorithmConfiguration, prepareMapToSend} from "./components/Configuration/AlgorithmConfig";
+import RawDataPlot from "./components/RawDataPlot";
+import Prototypes from "./components/Prototypes";
+import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
 
 export type Algorithm = {
     name: string;
@@ -35,25 +31,11 @@ export type Anomaly = {
     timestamp: string;
 }
 
-type AnomalyResponse = {
-    error: number[];
-    timestamps: string[];
-    anomalies: Anomaly[];
-    threshold: number;
-}
-
 export type DateRange = {
     start: Date | null;
     end: Date | null;
     min: Date | null;
     max: Date | null;
-}
-
-export type TimeSeries = Record<string, number[] | undefined>;
-
-export type SnackDetails = {
-    severity: string;
-    message: string;
 }
 
 const BASE_URL = "http://localhost:8000";
@@ -70,27 +52,10 @@ export function getOrSetUuid() {
 }
 
 export function App() {
-    const [lightMode, setTheme] = useState(false);
-    const [darkTheme, setDarkTheme] = useState<Theme>(createTheme({palette: {mode: "dark",}}));
-    const [buildings, setBuildings] = useState<string[]>([]);
-    const [building, setBuilding] = useState<string>("");
-    const [sensors, setSensors] = useState<Sensor[]>([]);
-    const [selectedSensors, setSelectedSensors] = useState<Sensor[]>([]);
-    const [algorithms, setAlgorithms] = useState<Algorithm[]>([]);
-    const [algorithm, setAlgorithm] = useState<Algorithm | null>(null);
-    const [timestamps, setTimestamps] = useState<string[]>([]);
-    const [timeseries, setTimeseries] = useState<TimeSeries>({});
-    const [selectedAnomalyIndex, setSelectedAnomalyIndex] = useState<number>(0);
-    const [anomalyResponse, setAnomalyResponse] = useState<AnomalyResponse | null>(null);
-    const [calculatingAnomalies, setCalculatingAnomalies] = useState<boolean>(false);
-    const [pendingUpdates, setPendingUpdates] = useState<number>(0);
-    const [dateRange, setDateRange] = useState<DateRange>({max: null, min: null, start: null, end: null});
-    const [errorFetchedChecker, setErrorFetchedChecker] = useState(false);
-    const [algoConfigResult, setAlgoConfigResult] = useState<Record<number, Record<string, ValueType>>>({}) //Algorithm ID: Setting map
-    const [snackDetails, setSnackDetails] = useState<SnackDetails>(null)
+    const [state, dispatch] = useReducer(appReducer, null, appDefaultState);
 
     function handleApiError(response: Response) {
-        let severity: string;
+        let severity: "info" | "warning" | "error";
         if (response.status < 300) {
             severity = "info";
         } else if (response.status < 500) {
@@ -99,19 +64,25 @@ export function App() {
             severity = "error";
         } else {
             console.log(`Status code: ${response.status}`);
+            return; //Severity undetermined.
         }
 
-        response.json().then(x => setSnackDetails({severity: severity, message: x["detail"]}));
+        response.json().then(x => dispatch({
+            type: "ShowSnackbar",
+            severity: severity,
+            message: x["detail"]
+        }));
     }
 
     function handleNetworkError() {
-        setSnackDetails({
+        dispatch({
+            type: "ShowSnackbar",
             severity: "error",
             message: "Network Error: Something is wrong with the connection to the server."
         });
     }
 
-    function makeNetworkFetch(url: string | URL, action: (json: JSON) => void, onError: () => void = () => undefined, header: {} = {}) {
+    function makeNetworkFetch(url: string | URL, action: (json: any) => void, onError: () => void = () => undefined, header: {} = {}) {
         function validateNetworkPromise(response: Response) {
             if (response.status === 200) {
                 return response.json();
@@ -136,165 +107,118 @@ export function App() {
     }
 
     function handleBuildingChange(buildingName: string) {
-        setBuilding(buildingName);
-        setSelectedSensors([]);
-        setSensors([]);
-        setTimestamps([]);
-        setTimeseries({});
+        dispatch({type: "BuildingSelected", buildingName: buildingName});
 
         const sensor_url = "/buildings/" + buildingName + "/sensors";
-        makeNetworkFetch(sensor_url, (result) => setSensors(result["sensors"]));
+        makeNetworkFetch(sensor_url, json => dispatch({
+            type: "SensorsFetched",
+            sensors: json["sensors"] as Sensor[]
+        }));
 
         const timestamp_url = "/buildings/" + buildingName + "/timestamps";
-
-        function updateBuildingData(result) {
-            const stamps = result["timestamps"] as string[];
-            setTimestamps(stamps);
-            if (stamps.length === 0) return;
-            setDateRange({
-                min: new Date(stamps[0]),
-                start: new Date(stamps[0]),
-                max: new Date(stamps[stamps.length - 1]),
-                end: new Date(stamps[stamps.length - 1])
-            })
-        }
-
-        makeNetworkFetch(timestamp_url, updateBuildingData);
+        makeNetworkFetch(timestamp_url, json => dispatch({
+            type: "BuildingTimestampsFetched",
+            timestamps: json["timestamps"] as string[]
+        }));
     }
 
-    function handleSensorChange(selected: Sensor[]) {
-        setSelectedSensors(selected);
+    function handleSensorChange(selectedSensors: Sensor[]) {
+        dispatch({type: "SensorsSelected", selectedSensors: selectedSensors});
 
-        for (let s of selected) {
-            if (timeseries[s.type] !== undefined) {
+        for (let s of selectedSensors) {
+            if (state.sensorData[s.type] !== undefined) {
                 continue;
             }
 
-            setPendingUpdates(c => c + 1);
-            const sensors_url = "/buildings/" + building + "/sensors/" + s.type
-            const addSensorValues = (result) => {
-                setTimeseries(t => {
-                    return {...t, [s.type]: result["sensor"]}
-                });
-                setPendingUpdates(c => c - 1);
-            };
-            makeNetworkFetch(sensors_url, addSensorValues, () => setPendingUpdates(c => c - 1));
+            dispatch({type: "SensorFetchStarted"});
+            const sensors_url = "/buildings/" + state.selectedBuilding + "/sensors/" + s.type
+            makeNetworkFetch(sensors_url,
+                result => dispatch({
+                    type: "SensorFetchCompleted",
+                    sensorType: s.type,
+                    sensorData: result["sensor"] as number[]
+                }),
+                () => dispatch({type: "SensorFetchFailed"}));
         }
     }
 
-    function hideSnacks() {
-        setSnackDetails(null)
-    }
-
-    function handleAlgorithmChange(newAlgorithm: Algorithm) {
-        setAlgorithm(newAlgorithm);
-    }
-
-    function handleAnomalySelect(anomalyIndex: number) {
-        setSelectedAnomalyIndex(anomalyIndex);
-    }
-
-    function handleDateRangeChange(start: Date | null, end: Date | null) {
-        if (start !== null) {
-            start.setHours(0, 0, 0);
-        }
-        if (end !== null) {
-            end.setHours(23, 59, 59);
-        }
-
-        if (dateRange.min === null || dateRange.max === null) {
-            throw new Error("Cannot update DateRange when limits are unknown.");
-        }
-
-        if (start !== null && start < dateRange.min) {
-            start = dateRange.min;
-        }
-
-        if (end !== null && end > dateRange.max) {
-            end = dateRange.max;
-        }
-
-        setDateRange({...dateRange, start: start, end: end});
-    }
-
-    function handleAlgorithmConfigChange(id: string, value: ValueType) {
-        const oldConfig = algoConfigResult[algorithm!.id];
-        const newConfig = {...oldConfig, [id]: value};
-        const newMap = {...algoConfigResult, [algorithm!.id]: newConfig};
-        setAlgoConfigResult(newMap);
-    }
-
-
-    function canFindAnomalies() {
-        return !pendingUpdates && building !== "" && selectedSensors.length > 0 && algorithm !== null &&
-            dateRange.start !== null && dateRange.end !== null;
+    function canFindAnomalies(): boolean {
+        return state.sensorFetchesPending === 0 && state.selectedBuilding !== "" && state.selectedSensors.length > 0 &&
+            state.selectedAlgorithm !== null && state.buildingDateRange.start !== null && state.buildingDateRange.end !== null;
     }
 
     function findAnomalies() {
-        setCalculatingAnomalies(true);
-        let url = new URL("/calculate/anomalies", BASE_URL);
-        url.searchParams.set("algo", String(algorithm!.id));
-        url.searchParams.set("building", building);
-        url.searchParams.set("sensors", selectedSensors.map(s => s.type).join(";"));
-        url.searchParams.set("start", dateRange.start!.toISOString());
-        url.searchParams.set("stop", dateRange.end!.toISOString());
+        dispatch({type: "AnomalySearchStarted"});
 
-        const configMap = prepareMapToSend(algoConfigResult[algorithm!.id]);
+        let url = new URL("/calculate/anomalies", BASE_URL);
+        url.searchParams.set("algo", String(state.selectedAlgorithm!.id));
+        url.searchParams.set("building", state.selectedBuilding);
+        url.searchParams.set("sensors", state.selectedSensors.map(s => s.type).join(";"));
+        url.searchParams.set("start", state.buildingDateRange.start!.toISOString());
+        url.searchParams.set("stop", state.buildingDateRange.end!.toISOString());
+
+        const configMap = prepareMapToSend(state.algorithmConfigResult[state.selectedAlgorithm!.id]);
         url.searchParams.set("config", JSON.stringify(configMap));
 
         const options = {
             headers: new Headers({'uuid': `${UUID}`})
         }
 
-        function setAnomaly(result: AnomalyResponse & JSON) {
-            setAnomalyResponse(result);
-            setSelectedAnomalyIndex(0);
-            setCalculatingAnomalies(false);
-            setSnackDetails({
-                severity: "success",
-                message: `Found ${result.anomalies.length} anomalies.`
-            });
-        }
-
-        makeNetworkFetch(url, setAnomaly, () => setCalculatingAnomalies(false), options)
+        makeNetworkFetch(url,
+            json => dispatch({
+                type: "AnomalySearchCompleted",
+                timestamps: json["timestamps"] as string[],
+                scores: json["error"] as number[],
+                anomalies: json["anomalies"] as Anomaly[],
+                threshold: json["threshold"] as number
+            }),
+            () => dispatch({type: "AnomalySearchFailed"}),
+            options)
     }
 
     function anomalySection() {
-        if (anomalyResponse === null) {
+        //Cache function to avoid re-rendering of anomaly table because of onSelect prop change
+        const anomalySelectionDispatchCallback = useCallback((index: number) => dispatch({
+            type: "AnomalySelected",
+            anomalyIndex: index
+        }), []);
+
+        if (!state.anomaliesReceived) {
             return null;
         }
+
         return <>
             <div id="anomaly-score">
                 <AnomalyScorePlot
-                    timestamps={anomalyResponse.timestamps}
-                    errors={anomalyResponse.error}
-                    threshold={anomalyResponse.threshold}
-                    lightTheme={lightMode}
+                    timestamps={state.anomalyScoreTimestamps}
+                    errors={state.anomalyScores}
+                    threshold={state.anomalyThreshold}
+                    lightTheme={state.isLightMode}
                 />
             </div>
             <div id="anomalies">
                 <AnomalyTable
-                    anomalies={anomalyResponse.anomalies}
-                    selectedIndex={selectedAnomalyIndex}
-                    onSelect={handleAnomalySelect}
+                    anomalies={state.anomalies}
+                    selectedIndex={state.selectedAnomalyIndex}
+                    onSelect={anomalySelectionDispatchCallback}
                 />
             </div>
             <div id="prototypes">
                 <Prototypes
-                    anomalyID={selectedAnomalyIndex}
+                    anomalyID={state.selectedAnomalyIndex}
                     baseURL={BASE_URL}
-                    lightTheme={lightMode}
+                    lightTheme={state.isLightMode}
                     uuid={UUID}
                     networkFetch={makeNetworkFetch}
                 />
             </div>
             <div id="features">
                 <FeatureAttributionPlot
-                    algorithm={algorithm!}
+                    algorithm={state.selectedAlgorithm!}
                     baseURL={BASE_URL}
-                    anomalyID={selectedAnomalyIndex}
+                    anomalyID={state.selectedAnomalyIndex}
                     additionalColors={ADD_GRAPH_COLORS}
-                    lightTheme={lightMode}
+                    lightTheme={state.isLightMode}
                     uuid={UUID}
                     networkFetch={makeNetworkFetch}
                 />
@@ -302,84 +226,81 @@ export function App() {
         </>
     }
 
+    //One time side effects on first render
     useEffect(() => {
+        //Attach listener for light/dark mode.
         window.matchMedia('(prefers-color-scheme: light)')
-            .addEventListener('change', event => {
-                setTheme(event.matches);
-                setDarkTheme(createTheme({palette: {mode: event.matches ? "light" : "dark",}}));
-            });
+            .addEventListener('change', event => dispatch({type: "UpdateLightMode", isLightMode: event.matches}));
+
+        //Fetch available buildings
+        makeNetworkFetch("/buildings", json => dispatch({
+            type: "BuildingsFetched",
+            buildings: json["buildings"] as string[]
+        }));
+
+        //Fetch available algorithms
+        makeNetworkFetch("/algorithms", json => dispatch({
+            type: "AlgorithmsFetched",
+            algorithms: json["algorithms"] as Algorithm[]
+        }));
     }, []);
 
-    useEffect(() => {
-        const action = (result) => {
-            setBuildings(result["buildings"]);
-        };
-        const errorAction = () => {
-            let timer = setTimeout(() => {
-                setErrorFetchedChecker((c: any) => !c);
-            }, 5000);
-
-            // clear Timeout
-            return () => {
-                clearTimeout(timer);
-            };
-        };
-        makeNetworkFetch("/buildings", action, errorAction);
-    }, [errorFetchedChecker]);
-
-    useEffect(() => {
-        const action = (result) => {
-            const algos: Algorithm[] = result["algorithms"];
-            setAlgorithms(algos);
-            let results: Record<number, Record<string, ValueType>> = {};
-            for (const algo of algos) {
-                results[algo.id] = buildDefaultMap(algo.config);
-            }
-            setAlgoConfigResult(results);
-        };
-        makeNetworkFetch("/algorithms", action);
-    }, []);
+    //Do not create theme on every render to avoid expensive re-rendering of entire theme provider context
+    const theme = useMemo(() => createTheme({palette: {mode: state.isLightMode ? "light" : "dark"}}), [state.isLightMode]);
 
     return (
         <React.StrictMode>
-            <ThemeProvider theme={darkTheme}>
+            <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme/>
-                {snackDetails ?
+                {state.snackbarConfig ?
                     <ErrorSnackbar
-                        snackDetails={snackDetails}
-                        onClose={hideSnacks}
+                        severity={state.snackbarConfig.severity}
+                        message={state.snackbarConfig.message}
+                        onClose={() => dispatch({type: "HideSnackbar"})}
                     /> : null}
                 <div id="root-container">
                     <div id="grid-container">
                         <div id="config">
                             <Config
-                                buildings={buildings}
-                                selectedBuilding={building}
-                                sensors={sensors}
-                                selectedSensors={selectedSensors}
-                                algorithms={algorithms}
-                                selectedAlgorithm={algorithm}
-                                calculating={calculatingAnomalies}
-                                dateRange={dateRange}
-                                onDateRangeChange={handleDateRangeChange}
+                                buildings={state.buildingNames}
+                                selectedBuilding={state.selectedBuilding}
+                                sensors={state.availableSensors}
+                                selectedSensors={state.selectedSensors}
+                                algorithms={state.availableAlgorithms}
+                                selectedAlgorithm={state.selectedAlgorithm}
+                                calculating={state.isWaitingForAnomalyResult}
+                                dateRange={state.buildingDateRange}
+                                onDateRangeChange={(newStart, newEnd) => dispatch({
+                                    type: "DateRangeChanged",
+                                    start: newStart,
+                                    end: newEnd
+                                })}
                                 findingEnabled={canFindAnomalies()}
                                 onBuildingChange={handleBuildingChange}
                                 onSensorChange={handleSensorChange}
-                                onAlgorithmChange={handleAlgorithmChange}
+                                onAlgorithmChange={(newAlgo) => dispatch({
+                                    type: "AlgorithmSelected",
+                                    algorithm: newAlgo
+                                })}
                                 onFindAnomalies={findAnomalies}
-                                algoConfig={algorithm === null ? null : algorithm.config}
-                                algo_config_result={algorithm === null ? null : algoConfigResult[algorithm.id]}
-                                onAlgoConfigChange={handleAlgorithmConfigChange}
+                                algoConfig={state.selectedAlgorithm === null ? null : state.selectedAlgorithm.config}
+                                algo_config_result={state.selectedAlgorithm === null ?
+                                    null : state.algorithmConfigResult[state.selectedAlgorithm.id]}
+                                onAlgoConfigChange={(settingID, newValue) => dispatch({
+                                    type: "AlgorithmSettingChanged",
+                                    settingID: settingID,
+                                    newValue: newValue
+                                })}
                             />
                         </div>
                         <div id="raw-data">
                             <RawDataPlot
-                                showHint={building === "" || selectedSensors.length < 1}
-                                timestamps={timestamps}
-                                timeseries={timeseries}
-                                sensors={selectedSensors}
+                                showHint={state.selectedBuilding === "" || state.selectedSensors.length < 1}
+                                timestamps={state.buildingTimestamps}
+                                timeseries={state.sensorData}
+                                sensors={state.selectedSensors}
                                 additionalColors={ADD_GRAPH_COLORS}
-                                lightTheme={lightMode}
+                                lightTheme={state.isLightMode}
                             />
                         </div>
                         {anomalySection()}

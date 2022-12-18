@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, {AlertProps} from '@mui/material/Alert';
-import {SnackDetails} from "../App";
+import {AlertColor} from "@mui/material";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
@@ -11,7 +11,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 });
 
 type SnackbarProps = {
-    snackDetails: SnackDetails;
+    severity: AlertColor;
+    message: string;
     onClose: () => void;
 }
 
@@ -23,8 +24,8 @@ export default function ErrorSnackbar(props: SnackbarProps) {
             autoHideDuration={6000}
             onClose={props.onClose}
         >
-            <Alert onClose={props.onClose} severity={props.snackDetails.severity} sx={{width: '100%'}}>
-                {props.snackDetails.message}
+            <Alert onClose={props.onClose} severity={props.severity} sx={{width: '100%'}}>
+                {props.message}
             </Alert>
         </Snackbar>
     );

@@ -2,12 +2,12 @@ import * as React from "react";
 import Plotly from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import {Alert, useTheme} from "@mui/material";
-import {Sensor, TimeSeries} from "../App";
+import {Sensor} from "../App";
 
 type RawDataProps = {
     showHint: boolean;
     timestamps: string[];
-    timeseries: TimeSeries;
+    timeseries: Record<string, number[] | undefined>;
     sensors: Sensor[];
     additionalColors: string[];
     lightTheme: boolean;
@@ -52,7 +52,7 @@ function prepareLayout(colors: string[], lightTheme: boolean) {
     }
 }
 
-function prepareData(timestamps: string[], timeseries: TimeSeries, sensors: Sensor[]) {
+function prepareData(timestamps: string[], timeseries: Record<string, number[] | undefined>, sensors: Sensor[]) {
     let result = [];
     for (let d of sensors) {
         if (timeseries[d.type] === undefined) {
@@ -69,8 +69,8 @@ function prepareData(timestamps: string[], timeseries: TimeSeries, sensors: Sens
     return result;
 }
 
-function renderPlot(timestamps: string[], timeseries: TimeSeries, sensors: Sensor[], colors: string[],
-                    lightTheme: boolean) {
+function renderPlot(timestamps: string[], timeseries: Record<string, number[] | undefined>, sensors: Sensor[],
+                    colors: string[], lightTheme: boolean) {
     const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot

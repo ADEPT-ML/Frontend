@@ -38,6 +38,16 @@ export type DateRange = {
     max: Date | null;
 }
 
+declare module '@mui/material/styles' {
+    interface Theme {
+        additional_graph_colors: string[];
+    }
+
+    interface ThemeOptions {
+        additional_graph_colors: string[];
+    }
+}
+
 const BASE_URL = "http://localhost:8000";
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 const UUID = getOrSetUuid();
@@ -193,7 +203,6 @@ export function App() {
                     timestamps={state.anomalyScoreTimestamps}
                     errors={state.anomalyScores}
                     threshold={state.anomalyThreshold}
-                    lightTheme={state.isLightMode}
                 />
             </div>
             <div id="anomalies">
@@ -207,7 +216,6 @@ export function App() {
                 <Prototypes
                     anomalyID={state.selectedAnomalyIndex}
                     baseURL={BASE_URL}
-                    lightTheme={state.isLightMode}
                     uuid={UUID}
                     networkFetch={makeNetworkFetch}
                 />
@@ -217,8 +225,6 @@ export function App() {
                     algorithm={state.selectedAlgorithm!}
                     baseURL={BASE_URL}
                     anomalyID={state.selectedAnomalyIndex}
-                    additionalColors={ADD_GRAPH_COLORS}
-                    lightTheme={state.isLightMode}
                     uuid={UUID}
                     networkFetch={makeNetworkFetch}
                 />
@@ -246,7 +252,10 @@ export function App() {
     }, []);
 
     //Do not create theme on every render to avoid expensive re-rendering of entire theme provider context
-    const theme = useMemo(() => createTheme({palette: {mode: state.isLightMode ? "light" : "dark"}}), [state.isLightMode]);
+    const theme = useMemo(() => createTheme({
+        palette: {mode: state.isLightMode ? "light" : "dark"},
+        additional_graph_colors: ADD_GRAPH_COLORS
+    }), [state.isLightMode]);
 
     return (
         <React.StrictMode>
@@ -299,8 +308,6 @@ export function App() {
                                 timestamps={state.buildingTimestamps}
                                 timeseries={state.sensorData}
                                 sensors={state.selectedSensors}
-                                additionalColors={ADD_GRAPH_COLORS}
-                                lightTheme={state.isLightMode}
                             />
                         </div>
                         {anomalySection()}

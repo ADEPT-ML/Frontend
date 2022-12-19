@@ -7,7 +7,6 @@ import {Alert, CircularProgress, useTheme} from "@mui/material";
 type PrototypesProps = {
     anomalyID: number;
     baseURL: string;
-    lightTheme: boolean;
     uuid: string;
     networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
 }
@@ -114,7 +113,7 @@ function Prototypes(props: PrototypesProps) {
                 makeData(theme.palette.primary.dark, pData.prototype_b, "x2", "y1"),
                 makeData(theme.palette.error.dark, pData.anomaly, "x3", "y1")
             ]}
-            layout={prepareLayout(props.lightTheme)}
+            layout={prepareLayout(theme.palette.mode === "light")}
             config={plotConfig}
             style={{width: "100%", height: "100%"}}
         />

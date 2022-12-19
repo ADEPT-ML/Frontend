@@ -10,8 +10,6 @@ type AttributionProps = {
     anomalyID: number;
     baseURL: string;
     algorithm: Algorithm
-    additionalColors: string[];
-    lightTheme: boolean;
     uuid: string;
     networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
 }
@@ -91,7 +89,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
                 name: a.name,
                 hovertemplate: "%{x:.2f}%"
             }))}
-            layout={prepareLayout(theme, props.additionalColors, props.lightTheme)}
+            layout={prepareLayout(theme, theme.additional_graph_colors, theme.palette.mode === "light")}
             config={plotConfig}
             className={css.plot}
         />

@@ -7,7 +7,6 @@ type AnomalyScoreProps = {
     timestamps: string[];
     errors: number[];
     threshold: number;
-    lightTheme: boolean;
 }
 
 const config = {responsive: true, displayModeBar: false}
@@ -57,7 +56,7 @@ function lineShape(threshold: number, color: string) {
 
 export default function AnomalyScorePlot(props: AnomalyScoreProps) {
     const theme = useTheme();
-    const preparedLayout = prepareLayout(props.lightTheme);
+    const preparedLayout = prepareLayout(theme.palette.mode === "light");
     const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot

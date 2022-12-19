@@ -1,17 +1,18 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import Plotly from "plotly.js-basic-dist-min";
+import Plotly, {Layout} from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import * as css from "./styles.module.css"
 import {Alert, CircularProgress, Theme, useTheme} from "@mui/material";
 import {Algorithm} from "../../App";
+import {PlotConfig, PlotLayout} from "../PlotlyUtils";
 
 type AttributionProps = {
     anomalyID: number;
     baseURL: string;
     algorithm: Algorithm
     uuid: string;
-    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
+    networkFetch: (url: string | URL, action: (json: any) => void, onError: () => void, header: {}) => void;
 }
 
 type Attribution = {
@@ -19,32 +20,13 @@ type Attribution = {
     contribution: number;
 }
 
-const plotConfig = {responsive: true, displayModeBar: false}
+function prepareLayout(theme: Theme): Partial<Layout> {
+    const lightTheme: boolean = theme.palette.mode === "light";
+    const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
 
-function prepareLayout(theme: Theme, colors: string[], lightTheme: boolean) {
-    let clrs = [theme.palette.primary.dark, theme.palette.secondary.dark];
-    clrs.push(...colors);
-    return {
-        autosize: true,
-        margin: {l: 10, r: 0, b: 20, t: 0},
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: {
-            color: lightTheme ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-            showgrid: false,
-            zeroline: false,
-            fixedrange: true
-        },
-        yaxis: {
-            showgrid: false,
-            zeroline: false,
-            fixedrange: true,
-            showticklabels: false
-        },
-        barmode: "stack",
-        showlegend: false,
-        colorway: clrs
-    } as const
+    const layout = new PlotLayout(lightTheme).withLineColors(colors).withMargins({l: 10, r: 0, b: 20, t: 0})
+        .withoutGrid().withoutZoom().with("barmode", "stack").build();
+    return {...layout, yaxis: {...layout.yaxis, showticklabels: false}};
 }
 
 function FeatureAttributionPlot(props: AttributionProps) {
@@ -89,8 +71,8 @@ function FeatureAttributionPlot(props: AttributionProps) {
                 name: a.name,
                 hovertemplate: "%{x:.2f}%"
             }))}
-            layout={prepareLayout(theme, theme.additional_graph_colors, theme.palette.mode === "light")}
-            config={plotConfig}
+            layout={prepareLayout(theme)}
+            config={PlotConfig}
             className={css.plot}
         />
     }

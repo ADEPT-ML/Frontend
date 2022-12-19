@@ -1,14 +1,15 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import Plotly from "plotly.js-basic-dist-min";
+import Plotly, {Layout, PlotData} from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import {Alert, CircularProgress, useTheme} from "@mui/material";
+import {PlotConfig, PlotLayout} from "./PlotlyUtils";
 
 type PrototypesProps = {
     anomalyID: number;
     baseURL: string;
     uuid: string;
-    networkFetch: (url: string | URL, action: (json: JSON) => void, onError: () => void, header: {}) => void;
+    networkFetch: (url: string | URL, action: (json: any) => void, onError: () => void, header: {}) => void;
 }
 
 type PrototypeResponse = {
@@ -17,46 +18,14 @@ type PrototypeResponse = {
     anomaly: number[];
 }
 
-const plotConfig = {responsive: true, displayModeBar: false}
-
-function yaxisTemplate(lightTheme: boolean) {
-    return {
-        gridcolor: lightTheme ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
-        color: lightTheme ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-        zeroline: false,
-        fixedrange: true,
-        showticklabels: false
-    } as const
+function prepareLayout(lightTheme: boolean): Partial<Layout> {
+    return new PlotLayout(lightTheme).withTitle("Example-based explanation").withMargins({l: 20, r: 20, b: 0, t: 30})
+        .withoutZoom().withoutTicklabels().with("grid", {rows: 1, columns: 3, pattern: 'independent'})
+        .withSubXAxis("xaxis", [0, 0.3]).withSubXAxis("xaxis2", [0.35, 0.65]).withSubXAxis("xaxis3", [0.7, 1])
+        .build();
 }
 
-function xaxisTemplate(domain: number[], lightTheme: boolean) {
-    return {...yaxisTemplate(lightTheme), domain: domain};
-}
-
-function prepareLayout(lightTheme: boolean) {
-    return {
-        autosize: true,
-        margin: {l: 20, r: 20, b: 0, t: 30},
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        showlegend: false,
-        xaxis: xaxisTemplate([0, 0.3], lightTheme),
-        xaxis2: xaxisTemplate([0.35, 0.65], lightTheme),
-        xaxis3: xaxisTemplate([0.7, 1], lightTheme),
-        yaxis: yaxisTemplate(lightTheme),
-        grid: {rows: 1, columns: 3, pattern: 'independent'},
-        title: {
-            font: {
-                family: "Roboto, sans-serif",
-                color: lightTheme ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
-                size: 18
-            },
-            text: "Example-based explanation"
-        }
-    } as const
-}
-
-function indexArray(cnt: Number) {
+function indexArray(cnt: number) {
     let result: number[] = [];
     for (let i = 0; i < cnt; i++) {
         result.push(i);
@@ -64,7 +33,7 @@ function indexArray(cnt: Number) {
     return result;
 }
 
-function makeData(color: string, data: number[], axis_x: string, axis_y: string) {
+function makeData(color: string, data: number[], axis_x: string, axis_y: string): Partial<PlotData> {
     return {
         x: indexArray(data.length),
         y: data,
@@ -74,7 +43,7 @@ function makeData(color: string, data: number[], axis_x: string, axis_y: string)
         xaxis: axis_x,
         yaxis: axis_y,
         hoverinfo: "skip"
-    } as const
+    }
 }
 
 function Prototypes(props: PrototypesProps) {
@@ -114,7 +83,7 @@ function Prototypes(props: PrototypesProps) {
                 makeData(theme.palette.error.dark, pData.anomaly, "x3", "y1")
             ]}
             layout={prepareLayout(theme.palette.mode === "light")}
-            config={plotConfig}
+            config={PlotConfig}
             style={{width: "100%", height: "100%"}}
         />
     );

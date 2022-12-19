@@ -1,8 +1,9 @@
 import * as React from "react";
-import Plotly from "plotly.js-basic-dist-min";
+import Plotly, {Layout, PlotData} from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import {Alert, Theme, useTheme} from "@mui/material";
 import {Sensor} from "../App";
+import {PlotConfig, PlotLayout} from "./PlotlyUtils";
 
 type RawDataProps = {
     showHint: boolean;
@@ -11,47 +12,19 @@ type RawDataProps = {
     sensors: Sensor[];
 }
 
-const config = {responsive: true, displayModeBar: false}
-
-function prepareLayout(theme: Theme) {
+function prepareLayout(theme: Theme): Partial<Layout> {
     const lightTheme: boolean = theme.palette.mode === "light";
-    let clrs = [theme.palette.primary.dark, theme.palette.secondary.dark];
-    clrs.push(...theme.additional_graph_colors);
-    return {
-        autosize: true,
-        margin: {l: 20, r: 20, b: 30, t: 30},
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: {
-            gridcolor: lightTheme ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
-            color: lightTheme ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-            zeroline: false
-        },
-        yaxis: {
-            gridcolor: lightTheme ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
-            color: lightTheme ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-            zeroline: false,
-            automargin: true
-        },
-        title: {
-            font: {
-                family: "Roboto, sans-serif",
-                color: lightTheme ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
-                size: 18
-            },
-            text: "Sensor data"
-        },
-        legend: {
-            font: {
-                color: lightTheme ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)"
-            }
-        },
-        colorway: clrs
-    }
+    const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
+
+    const layout = new PlotLayout(lightTheme).withTitle("Sensor data").withLineColors(colors)
+        .withMargins({l: 20, r: 20, b: 30, t: 30}).withLegend().build();
+
+    return {...layout, yaxis: {...layout.yaxis, automargin: true}}
 }
 
-function prepareData(timestamps: string[], timeseries: Record<string, number[] | undefined>, sensors: Sensor[]) {
-    let result = [];
+function prepareData(timestamps: string[], timeseries: Record<string, number[] | undefined>,
+                     sensors: Sensor[]): Partial<PlotData>[] {
+    let result: Partial<PlotData>[] = [];
     for (let d of sensors) {
         if (timeseries[d.type] === undefined) {
             continue;
@@ -62,7 +35,7 @@ function prepareData(timestamps: string[], timeseries: Record<string, number[] |
             type: 'scatter',
             mode: 'lines',
             name: d.type
-        } as const)
+        })
     }
     return result;
 }
@@ -74,7 +47,7 @@ function renderPlot(timestamps: string[], timeseries: Record<string, number[] | 
         <Plot
             data={prepareData(timestamps, timeseries, sensors)}
             layout={prepareLayout(theme)}
-            config={config}
+            config={PlotConfig}
             style={{width: "100%", height: "100%"}}
         />
     );

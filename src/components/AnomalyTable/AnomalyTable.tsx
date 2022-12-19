@@ -5,6 +5,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import TableFooter from '@mui/material/TableFooter';
+import TablePagination from '@mui/material/TablePagination';
 import {Paper, Radio} from "@mui/material";
 import {Anomaly} from "../../App";
 import * as css from "./styles.module.css";
@@ -27,7 +29,10 @@ const headCells = [
 ];
 
 function AnomalyTable(props: AnomalyTableProps) {
-    const rows = props.anomalies.map((a, i) => (
+    const [page, setPage] = React.useState(0);
+    const rowsPerPage = 5;
+    const scrollLimit = 20;
+    let rows = props.anomalies.map((a, i) => (
         {
             id: i + 1,
             time: a.timestamp,
@@ -35,12 +40,24 @@ function AnomalyTable(props: AnomalyTableProps) {
         }
     ))
 
+    const paginationEnabled = rows.length > scrollLimit;
+
+    if(paginationEnabled) {
+        for (let i = 0; i < rows.length % rowsPerPage; i++) {
+            rows.push({id: -1, time: "", type: ""});
+        }
+    }
+
     const handleClick = (event: React.MouseEvent<HTMLTableRowElement, MouseEvent>, id: number) => {
         if (isSelected(id)) {
             return;
         }
 
         props.onSelect(id);
+    };
+
+    const handleChangePage = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, newPage: Number) => {
+        setPage(newPage);
     };
 
     const isSelected = (id: number) => id === props.selectedIndex;
@@ -51,8 +68,8 @@ function AnomalyTable(props: AnomalyTableProps) {
 
     function table() {
         return (
-            <Paper sx={{width: "100%", height: "100%", position: "relative", overflow: "hidden"}} elevation={2}>
-                <TableContainer className={css.slimScrollbar} sx={{position: "absolute", top: 0, bottom: 0}} >
+            <Paper className={`${css.tablePaper} ${paginationEnabled ? "" : css.scrollPaper}`} elevation={2}>
+                <TableContainer className={css.slimScrollbar} sx={{maxHeight: "100%"}}>
                     <Table stickyHeader size="small">
                         <TableHead>
                             <TableRow>
@@ -68,30 +85,56 @@ function AnomalyTable(props: AnomalyTableProps) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.map((row) => {
+                            {(paginationEnabled
+                                    ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : rows
+                            ).map((row) => {
                                 const isItemSelected = isSelected(row.id);
 
-                                return (
-                                    <TableRow
-                                        hover
-                                        onClick={(event) => handleClick(event, row.id)}
-                                        key={row.id}
-                                        selected={isItemSelected}
-                                    >
-                                        <TableCell padding="checkbox">
-                                            <Radio color="primary" checked={isItemSelected}/>
-                                        </TableCell>
-                                        <TableCell
-                                            component="td"
-                                            align="center"
+                                return (row.id === -1 ?
+                                        <TableRow sx={{visibility: "hidden"}}>
+                                            <TableCell align="center">-</TableCell>
+                                        </TableRow>
+                                        :
+                                        <TableRow
+                                            hover
+                                            onClick={(event) => handleClick(event, row.id)}
+                                            key={row.id}
+                                            selected={isItemSelected}
                                         >
-                                            {new Date(row.time).toLocaleString(undefined, dateOptions)}
-                                        </TableCell>
-                                        <TableCell align="center">{row.type}</TableCell>
-                                    </TableRow>
+                                            <TableCell padding="checkbox">
+                                                <Radio color="primary" checked={isItemSelected}/>
+                                            </TableCell>
+                                            <TableCell
+                                                component="td"
+                                                align="center"
+                                            >
+                                                {new Date(row.time).toLocaleString(undefined, dateOptions)}
+                                            </TableCell>
+                                            <TableCell align="center">{row.type}</TableCell>
+                                        </TableRow>
                                 );
                             })}
                         </TableBody>
+                        {!paginationEnabled ?
+                            null :
+                            <TableFooter>
+                                <TableRow>
+                                    <TablePagination
+                                        sx={{borderBottom: "None"}}
+                                        rowsPerPageOptions={[]}
+                                        colSpan={3}
+                                        count={rows.length}
+                                        rowsPerPage={rowsPerPage}
+                                        page={Math.min(page, Math.floor(rows.length / rowsPerPage))}
+                                        onPageChange={handleChangePage}
+                                        labelDisplayedRows={() => {
+                                            return `${page + 1} / ${Math.floor(rows.length / rowsPerPage)}`;
+                                        }
+                                        }
+                                    />
+                                </TableRow>
+                            </TableFooter>}
                     </Table>
                 </TableContainer>
             </Paper>

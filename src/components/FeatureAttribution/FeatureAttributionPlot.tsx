@@ -96,12 +96,12 @@ function FeatureAttributionPlot(props: AttributionProps) {
     }
 
     if (!props.algorithm.explainable) {
-        return <Alert severity="info" variant="outlined" className={css.alert}>
+        return <Alert severity="info" variant="outlined">
             The selected algorithm does not provide information about feature attribution.
         </Alert>
     }
     if (props.anomalyID === 0) {
-        return <Alert severity="info" variant="outlined" className={css.alert}>
+        return <Alert severity="info" variant="outlined">
             Select an anomaly above to display information about feature attribution.
         </Alert>
     }

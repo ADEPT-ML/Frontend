@@ -131,6 +131,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    min-height: 25vh;
 }
 
 #grid-container > div:hover {

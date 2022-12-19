@@ -54,7 +54,7 @@ function lineShape(threshold: number, color: string) {
     } as const)
 }
 
-export default function AnomalyScorePlot(props: AnomalyScoreProps) {
+function AnomalyScorePlot(props: AnomalyScoreProps) {
     const theme = useTheme();
     const preparedLayout = prepareLayout(theme.palette.mode === "light");
     const Plot = createPlotlyComponent(Plotly);
@@ -75,3 +75,5 @@ export default function AnomalyScorePlot(props: AnomalyScoreProps) {
         />
     );
 }
+
+export default React.memo(AnomalyScorePlot)

@@ -56,10 +56,6 @@ function AnomalyTable(props: AnomalyTableProps) {
         props.onSelect(id);
     };
 
-    const handleChangePage = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, newPage: Number) => {
-        setPage(newPage);
-    };
-
     const isSelected = (id: number) => id === props.selectedIndex;
     const dateOptions = {
         weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
@@ -127,7 +123,7 @@ function AnomalyTable(props: AnomalyTableProps) {
                                         count={rows.length}
                                         rowsPerPage={rowsPerPage}
                                         page={Math.min(page, Math.floor(rows.length / rowsPerPage))}
-                                        onPageChange={handleChangePage}
+                                        onPageChange={(event, page) => setPage(page)}
                                         labelDisplayedRows={() => {
                                             return `${page + 1} / ${Math.floor(rows.length / rowsPerPage)}`;
                                         }

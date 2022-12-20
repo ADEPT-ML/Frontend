@@ -84,11 +84,11 @@ function AnomalyTable(props: AnomalyTableProps) {
                             {(paginationEnabled
                                     ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     : rows
-                            ).map((row) => {
+                            ).map((row, index) => {
                                 const isItemSelected = isSelected(row.id);
 
                                 return (row.id === -1 ?
-                                        <TableRow sx={{visibility: "hidden"}}>
+                                        <TableRow key={"empty" + index} sx={{visibility: "hidden"}}>
                                             <TableCell align="center">-</TableCell>
                                         </TableRow>
                                         :

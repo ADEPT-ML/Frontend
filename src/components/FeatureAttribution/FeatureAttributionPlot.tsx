@@ -24,9 +24,10 @@ function prepareLayout(theme: Theme): Partial<Layout> {
     const lightTheme: boolean = theme.palette.mode === "light";
     const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
 
-    const layout = new PlotLayout(lightTheme).withLineColors(colors).withMargins({l: 10, r: 0, b: 20, t: 0})
+    let layout = new PlotLayout(lightTheme).withLineColors(colors).withMargins({l: 10, r: 0, b: 20, t: 0})
         .withoutGrid().withoutZoom().with("barmode", "stack").build();
-    return {...layout, yaxis: {...layout.yaxis, showticklabels: false}};
+    layout.yaxis!.showticklabels = false;
+    return layout;
 }
 
 function FeatureAttributionPlot(props: AttributionProps) {

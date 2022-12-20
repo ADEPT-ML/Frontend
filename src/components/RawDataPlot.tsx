@@ -16,10 +16,10 @@ function prepareLayout(theme: Theme): Partial<Layout> {
     const lightTheme: boolean = theme.palette.mode === "light";
     const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
 
-    const layout = new PlotLayout(lightTheme).withTitle("Sensor data").withLineColors(colors)
+    let layout = new PlotLayout(lightTheme).withTitle("Sensor data").withLineColors(colors)
         .withMargins({l: 20, r: 20, b: 30, t: 30}).withLegend().build();
-
-    return {...layout, yaxis: {...layout.yaxis, automargin: true}}
+    layout.yaxis!.automargin = true;
+    return layout;
 }
 
 function prepareData(timestamps: string[], timeseries: Record<string, number[] | undefined>,

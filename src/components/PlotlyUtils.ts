@@ -43,6 +43,11 @@ export class PlotLayout {
         return this;
     }
 
+    public withYRange(range: number[]): PlotLayout {
+        this.layout.yaxis!.range = range;
+        return this;
+    }
+
     public withLineColors(colors: string[]): PlotLayout {
         this.layout.colorway = colors;
         return this;

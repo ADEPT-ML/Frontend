@@ -18,10 +18,11 @@ type PrototypeResponse = {
     anomaly: number[];
 };
 
-function prepareLayout(lightTheme: boolean): Partial<Layout> {
+function prepareLayout(lightTheme: boolean, range: number[]): Partial<Layout> {
     return new PlotLayout(lightTheme)
         .withTitle("Example-based explanation")
         .withMargins({ l: 20, r: 20, b: 0, t: 30 })
+        .withYRange(range)
         .withoutZoom()
         .withoutTicklabels()
         .with("grid", { rows: 1, columns: 3, pattern: "independent" })
@@ -83,15 +84,19 @@ function Prototypes(props: PrototypesProps) {
             </Alert>
         );
     if (loading || pData === null) return <CircularProgress />;
+
+    const maxY = Math.max(...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly);
+    const minY = Math.min(...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly);
+
     const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot
             data={[
-                makeData(theme.palette.primary.dark, pData.prototype_a, "x1", "y1"),
-                makeData(theme.palette.primary.dark, pData.prototype_b, "x2", "y1"),
-                makeData(theme.palette.error.dark, pData.anomaly, "x3", "y1"),
+                makeData(theme.palette.primary.dark, pData.prototype_a, "x1", "yaxis"),
+                makeData(theme.palette.primary.dark, pData.prototype_b, "x2", "yaxis"),
+                makeData(theme.palette.error.dark, pData.anomaly, "x3", "yaxis"),
             ]}
-            layout={prepareLayout(theme.palette.mode === "light")}
+            layout={prepareLayout(theme.palette.mode === "light", [minY, maxY])}
             config={{ ...PlotConfig, staticPlot: true }}
             style={{ width: "100%", height: "100%" }}
         />

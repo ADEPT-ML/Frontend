@@ -1,6 +1,6 @@
-import {Config, Layout, Margin} from "plotly.js-basic-dist-min";
+import { Config, Layout, Margin } from "plotly.js-basic-dist-min";
 
-export const PlotConfig: Partial<Config> = {responsive: true, displayModeBar: false}
+export const PlotConfig: Partial<Config> = { responsive: true, displayModeBar: false };
 
 export class PlotLayout {
     protected layout: Partial<Layout>;
@@ -14,15 +14,15 @@ export class PlotLayout {
             xaxis: {
                 gridcolor: lightMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
                 color: lightMode ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-                zeroline: false
+                zeroline: false,
             },
             yaxis: {
                 gridcolor: lightMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
                 color: lightMode ? "rgba(0,0,0,1.0)" : "rgba(255,255,255,1.0)",
-                zeroline: false
+                zeroline: false,
             },
-            showlegend: false
-        }
+            showlegend: false,
+        };
         this.lightMode = lightMode;
     }
 
@@ -31,9 +31,9 @@ export class PlotLayout {
             font: {
                 family: "Roboto, sans-serif",
                 color: this.lightMode ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
-                size: 18
+                size: 18,
             },
-            text: title
+            text: title,
         };
         return this;
     }
@@ -52,14 +52,14 @@ export class PlotLayout {
         this.layout.showlegend = true;
         this.layout.legend = {
             font: {
-                color: this.lightMode ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)"
-            }
+                color: this.lightMode ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
+            },
         };
         return this;
     }
 
     public withSubXAxis(name: "xaxis" | "xaxis2" | "xaxis3", domain: number[]): PlotLayout {
-        this.layout[name] = {...this.layout.xaxis, domain: domain};
+        this.layout[name] = { ...this.layout.xaxis, domain: domain };
         return this;
     }
 

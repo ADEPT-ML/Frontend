@@ -1,14 +1,14 @@
 import * as React from "react";
-import {useCallback, useEffect, useMemo, useReducer} from "react";
-import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
-import {v4 as uuidv4} from 'uuid';
-import "./styles.css"
-import {appDefaultState, appReducer} from "./AppReducer";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { v4 as uuidv4 } from "uuid";
+import "./styles.css";
+import { appDefaultState, appReducer } from "./AppReducer";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import Config from "./components/Configuration/Config";
 import ErrorSnackbar from "./components/ErrorSnackbar";
-import {AlgorithmConfiguration, prepareMapToSend} from "./components/Configuration/AlgorithmConfig";
+import { AlgorithmConfiguration, prepareMapToSend } from "./components/Configuration/AlgorithmConfig";
 import RawDataPlot from "./components/RawDataPlot";
 import Prototypes from "./components/Prototypes";
 import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
@@ -18,27 +18,27 @@ export type Algorithm = {
     id: number;
     explainable: boolean;
     config: AlgorithmConfiguration;
-}
+};
 
 export type Sensor = {
     type: string;
     desc: string;
     unit: string;
-}
+};
 
 export type Anomaly = {
     type: string;
     timestamp: string;
-}
+};
 
 export type DateRange = {
     start: Date | null;
     end: Date | null;
     min: Date | null;
     max: Date | null;
-}
+};
 
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
     interface Theme {
         additional_graph_colors: string[];
     }
@@ -77,22 +77,29 @@ export function App() {
             return; //Severity undetermined.
         }
 
-        response.json().then(x => dispatch({
-            type: "ShowSnackbar",
-            severity: severity,
-            message: x["detail"]
-        }));
+        response.json().then((x) =>
+            dispatch({
+                type: "ShowSnackbar",
+                severity: severity,
+                message: x["detail"],
+            })
+        );
     }
 
     function handleNetworkError() {
         dispatch({
             type: "ShowSnackbar",
             severity: "error",
-            message: "Network Error: Something is wrong with the connection to the server."
+            message: "Network Error: Something is wrong with the connection to the server.",
         });
     }
 
-    function makeNetworkFetch(url: string | URL, action: (json: any) => void, onError: () => void = () => undefined, header: {} = {}) {
+    function makeNetworkFetch(
+        url: string | URL,
+        action: (json: any) => void,
+        onError: () => void = () => undefined,
+        header: {} = {}
+    ) {
         function validateNetworkPromise(response: Response) {
             if (response.status === 200) {
                 return response.json();
@@ -104,12 +111,12 @@ export function App() {
         }
 
         if ("string" === typeof url) {
-            url = BASE_URL + url
+            url = BASE_URL + url;
         }
 
         fetch(url, header)
-            .then(response => validateNetworkPromise(response))
-            .then(result => action(result))
+            .then((response) => validateNetworkPromise(response))
+            .then((result) => action(result))
             .catch(() => {
                 handleNetworkError();
                 onError();
@@ -117,53 +124,66 @@ export function App() {
     }
 
     function handleBuildingChange(buildingName: string) {
-        dispatch({type: "BuildingSelected", buildingName: buildingName});
+        dispatch({ type: "BuildingSelected", buildingName: buildingName });
 
         const sensor_url = "/buildings/" + buildingName + "/sensors";
-        makeNetworkFetch(sensor_url, json => dispatch({
-            type: "SensorsFetched",
-            sensors: json["sensors"] as Sensor[]
-        }));
+        makeNetworkFetch(sensor_url, (json) =>
+            dispatch({
+                type: "SensorsFetched",
+                sensors: json["sensors"] as Sensor[],
+            })
+        );
 
         const timestamp_url = "/buildings/" + buildingName + "/timestamps";
-        makeNetworkFetch(timestamp_url, json => dispatch({
-            type: "BuildingTimestampsFetched",
-            timestamps: json["timestamps"] as string[]
-        }));
+        makeNetworkFetch(timestamp_url, (json) =>
+            dispatch({
+                type: "BuildingTimestampsFetched",
+                timestamps: json["timestamps"] as string[],
+            })
+        );
     }
 
     function handleSensorChange(selectedSensors: Sensor[]) {
-        dispatch({type: "SensorsSelected", selectedSensors: selectedSensors});
+        dispatch({ type: "SensorsSelected", selectedSensors: selectedSensors });
 
         for (let s of selectedSensors) {
             if (state.sensorData[s.type] !== undefined) {
                 continue;
             }
 
-            dispatch({type: "SensorFetchStarted"});
-            const sensors_url = "/buildings/" + state.selectedBuilding + "/sensors/" + s.type
-            makeNetworkFetch(sensors_url,
-                result => dispatch({
-                    type: "SensorFetchCompleted",
-                    sensorType: s.type,
-                    sensorData: result["sensor"] as number[]
-                }),
-                () => dispatch({type: "SensorFetchFailed"}));
+            dispatch({ type: "SensorFetchStarted" });
+            const sensors_url = "/buildings/" + state.selectedBuilding + "/sensors/" + s.type;
+            makeNetworkFetch(
+                sensors_url,
+                (result) =>
+                    dispatch({
+                        type: "SensorFetchCompleted",
+                        sensorType: s.type,
+                        sensorData: result["sensor"] as number[],
+                    }),
+                () => dispatch({ type: "SensorFetchFailed" })
+            );
         }
     }
 
     function canFindAnomalies(): boolean {
-        return state.sensorFetchesPending === 0 && state.selectedBuilding !== "" && state.selectedSensors.length > 0 &&
-            state.selectedAlgorithm !== null && state.buildingDateRange.start !== null && state.buildingDateRange.end !== null;
+        return (
+            state.sensorFetchesPending === 0 &&
+            state.selectedBuilding !== "" &&
+            state.selectedSensors.length > 0 &&
+            state.selectedAlgorithm !== null &&
+            state.buildingDateRange.start !== null &&
+            state.buildingDateRange.end !== null
+        );
     }
 
     function findAnomalies() {
-        dispatch({type: "AnomalySearchStarted"});
+        dispatch({ type: "AnomalySearchStarted" });
 
         let url = new URL("/calculate/anomalies", BASE_URL);
         url.searchParams.set("algo", String(state.selectedAlgorithm!.id));
         url.searchParams.set("building", state.selectedBuilding);
-        url.searchParams.set("sensors", state.selectedSensors.map(s => s.type).join(";"));
+        url.searchParams.set("sensors", state.selectedSensors.map((s) => s.type).join(";"));
         url.searchParams.set("start", state.buildingDateRange.start!.toISOString());
         url.searchParams.set("stop", state.buildingDateRange.end!.toISOString());
 
@@ -171,102 +191,121 @@ export function App() {
         url.searchParams.set("config", JSON.stringify(configMap));
 
         const options = {
-            headers: new Headers({'uuid': `${UUID}`})
-        }
+            headers: new Headers({ uuid: `${UUID}` }),
+        };
 
-        makeNetworkFetch(url,
-            json => dispatch({
-                type: "AnomalySearchCompleted",
-                timestamps: json["timestamps"] as string[],
-                scores: json["error"] as number[],
-                anomalies: json["anomalies"] as Anomaly[],
-                threshold: json["threshold"] as number
-            }),
-            () => dispatch({type: "AnomalySearchFailed"}),
-            options)
+        makeNetworkFetch(
+            url,
+            (json) =>
+                dispatch({
+                    type: "AnomalySearchCompleted",
+                    timestamps: json["timestamps"] as string[],
+                    scores: json["error"] as number[],
+                    anomalies: json["anomalies"] as Anomaly[],
+                    threshold: json["threshold"] as number,
+                }),
+            () => dispatch({ type: "AnomalySearchFailed" }),
+            options
+        );
     }
 
     function anomalySection() {
         //Cache function to avoid re-rendering of anomaly table because of onSelect prop change
-        const anomalySelectionDispatchCallback = useCallback((index: number) => dispatch({
-            type: "AnomalySelected",
-            anomalyIndex: index
-        }), []);
+        const anomalySelectionDispatchCallback = useCallback(
+            (index: number) =>
+                dispatch({
+                    type: "AnomalySelected",
+                    anomalyIndex: index,
+                }),
+            []
+        );
 
         if (!state.anomaliesReceived) {
             return null;
         }
 
-        return <>
-            <div id="anomaly-score">
-                <AnomalyScorePlot
-                    timestamps={state.anomalyScoreTimestamps}
-                    errors={state.anomalyScores}
-                    threshold={state.anomalyThreshold}
-                />
-            </div>
-            <div id="anomalies">
-                <AnomalyTable
-                    anomalies={state.anomalies}
-                    selectedIndex={state.selectedAnomalyIndex}
-                    onSelect={anomalySelectionDispatchCallback}
-                />
-            </div>
-            <div id="prototypes">
-                <Prototypes
-                    anomalyID={state.selectedAnomalyIndex}
-                    baseURL={BASE_URL}
-                    uuid={UUID}
-                    networkFetch={makeNetworkFetch}
-                />
-            </div>
-            <div id="features">
-                <FeatureAttributionPlot
-                    algorithm={state.selectedAlgorithm!}
-                    baseURL={BASE_URL}
-                    anomalyID={state.selectedAnomalyIndex}
-                    uuid={UUID}
-                    networkFetch={makeNetworkFetch}
-                />
-            </div>
-        </>
+        return (
+            <>
+                <div id="anomaly-score">
+                    <AnomalyScorePlot
+                        timestamps={state.anomalyScoreTimestamps}
+                        errors={state.anomalyScores}
+                        threshold={state.anomalyThreshold}
+                    />
+                </div>
+                <div id="anomalies">
+                    <AnomalyTable
+                        anomalies={state.anomalies}
+                        selectedIndex={state.selectedAnomalyIndex}
+                        onSelect={anomalySelectionDispatchCallback}
+                    />
+                </div>
+                <div id="prototypes">
+                    <Prototypes
+                        anomalyID={state.selectedAnomalyIndex}
+                        baseURL={BASE_URL}
+                        uuid={UUID}
+                        networkFetch={makeNetworkFetch}
+                    />
+                </div>
+                <div id="features">
+                    <FeatureAttributionPlot
+                        algorithm={state.selectedAlgorithm!}
+                        baseURL={BASE_URL}
+                        anomalyID={state.selectedAnomalyIndex}
+                        uuid={UUID}
+                        networkFetch={makeNetworkFetch}
+                    />
+                </div>
+            </>
+        );
     }
 
     //One time side effects on first render
     useEffect(() => {
         //Attach listener for light/dark mode.
-        window.matchMedia('(prefers-color-scheme: light)')
-            .addEventListener('change', event => dispatch({type: "UpdateLightMode", isLightMode: event.matches}));
+        window
+            .matchMedia("(prefers-color-scheme: light)")
+            .addEventListener("change", (event) => dispatch({ type: "UpdateLightMode", isLightMode: event.matches }));
 
         //Fetch available buildings
-        makeNetworkFetch("/buildings", json => dispatch({
-            type: "BuildingsFetched",
-            buildings: json["buildings"] as string[]
-        }));
+        makeNetworkFetch("/buildings", (json) =>
+            dispatch({
+                type: "BuildingsFetched",
+                buildings: json["buildings"] as string[],
+            })
+        );
 
         //Fetch available algorithms
-        makeNetworkFetch("/algorithms", json => dispatch({
-            type: "AlgorithmsFetched",
-            algorithms: json["algorithms"] as Algorithm[]
-        }));
+        makeNetworkFetch("/algorithms", (json) =>
+            dispatch({
+                type: "AlgorithmsFetched",
+                algorithms: json["algorithms"] as Algorithm[],
+            })
+        );
     }, []);
 
     //Do not create theme on every render to avoid expensive re-rendering of entire theme provider context
-    const theme = useMemo(() => createTheme({
-        palette: {mode: state.isLightMode ? "light" : "dark"},
-        additional_graph_colors: ADD_GRAPH_COLORS
-    }), [state.isLightMode]);
+    const theme = useMemo(
+        () =>
+            createTheme({
+                palette: { mode: state.isLightMode ? "light" : "dark" },
+                additional_graph_colors: ADD_GRAPH_COLORS,
+            }),
+        [state.isLightMode]
+    );
 
     return (
         <React.StrictMode>
             <ThemeProvider theme={theme}>
-                <CssBaseline enableColorScheme/>
-                {state.snackbarConfig ?
+                <CssBaseline enableColorScheme />
+                {state.snackbarConfig ? (
                     <ErrorSnackbar
                         severity={state.snackbarConfig.severity}
                         message={state.snackbarConfig.message}
-                        onClose={() => dispatch({type: "HideSnackbar"})}
-                    /> : null}
+                        onClose={() => dispatch({ type: "HideSnackbar" })}
+                    />
+                ) : null}
                 <div id="root-container">
                     <div id="grid-container">
                         <div id="config">
@@ -279,27 +318,36 @@ export function App() {
                                 selectedAlgorithm={state.selectedAlgorithm}
                                 calculating={state.isWaitingForAnomalyResult}
                                 dateRange={state.buildingDateRange}
-                                onDateRangeChange={(newStart, newEnd) => dispatch({
-                                    type: "DateRangeChanged",
-                                    start: newStart,
-                                    end: newEnd
-                                })}
+                                onDateRangeChange={(newStart, newEnd) =>
+                                    dispatch({
+                                        type: "DateRangeChanged",
+                                        start: newStart,
+                                        end: newEnd,
+                                    })
+                                }
                                 findingEnabled={canFindAnomalies()}
                                 onBuildingChange={handleBuildingChange}
                                 onSensorChange={handleSensorChange}
-                                onAlgorithmChange={(newAlgo) => dispatch({
-                                    type: "AlgorithmSelected",
-                                    algorithm: newAlgo
-                                })}
+                                onAlgorithmChange={(newAlgo) =>
+                                    dispatch({
+                                        type: "AlgorithmSelected",
+                                        algorithm: newAlgo,
+                                    })
+                                }
                                 onFindAnomalies={findAnomalies}
                                 algoConfig={state.selectedAlgorithm === null ? null : state.selectedAlgorithm.config}
-                                algo_config_result={state.selectedAlgorithm === null ?
-                                    null : state.algorithmConfigResult[state.selectedAlgorithm.id]}
-                                onAlgoConfigChange={(settingID, newValue) => dispatch({
-                                    type: "AlgorithmSettingChanged",
-                                    settingID: settingID,
-                                    newValue: newValue
-                                })}
+                                algo_config_result={
+                                    state.selectedAlgorithm === null
+                                        ? null
+                                        : state.algorithmConfigResult[state.selectedAlgorithm.id]
+                                }
+                                onAlgoConfigChange={(settingID, newValue) =>
+                                    dispatch({
+                                        type: "AlgorithmSettingChanged",
+                                        settingID: settingID,
+                                        newValue: newValue,
+                                    })
+                                }
                             />
                         </div>
                         <div id="raw-data">

@@ -197,7 +197,7 @@ export default function Config(props: ConfigProps) {
                     loadingPosition="center"
                     variant="outlined"
                     onClick={props.onFindAnomalies}
-                    endIcon={props.configDirty ? <Search /> : <Check />}
+                    startIcon={props.configDirty ? <Search /> : <Check />}
                 >
                     {props.configDirty ? "Find Anomalies" : "Configuration unchanged"}
                 </LoadingButton>

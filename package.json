@@ -24,6 +24,7 @@
     "@mui/material": "^5.10.17",
     "@mui/x-date-pickers": "^5.0.10",
     "date-fns": "^2.29.3",
+    "immer": "^9.0.16",
     "plotly.js-basic-dist-min": "^2.16.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

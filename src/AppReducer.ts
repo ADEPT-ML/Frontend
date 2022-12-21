@@ -1,6 +1,7 @@
 import {Algorithm, Anomaly, DateRange, Sensor} from "./App";
 import {buildDefaultMap, ValueType} from "./components/Configuration/AlgorithmConfig";
 import {AlertColor} from "@mui/material";
+import produce from "immer";
 
 type AlgorithmSettingMap = Record<number, Record<string, ValueType>>
 
@@ -116,11 +117,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             };
             return {...state, buildingDateRange: newDateRange, buildingTimestamps: action.timestamps};
         case "SensorFetchCompleted":
-            return {
-                ...state,
-                sensorFetchesPending: state.sensorFetchesPending - 1,
-                sensorData: {...state.sensorData, [action.sensorType]: action.sensorData}
-            };
+            return produce(state, draft => {
+                draft.sensorFetchesPending--;
+                draft.sensorData[action.sensorType] = action.sensorData;
+            });
         case "AnomalySearchCompleted":
             return {
                 ...state,
@@ -153,15 +153,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             if (state.selectedAlgorithm === null) {
                 throw new Error("Algorithm config changed but no algorithm is selected.");
             }
-            const oldConfig = state.algorithmConfigResult[state.selectedAlgorithm.id];
-            const newConfig = {...oldConfig, [action.settingID]: action.newValue};
-            return {
-                ...state,
-                algorithmConfigResult: {
-                    ...state.algorithmConfigResult,
-                    [state.selectedAlgorithm.id]: newConfig
-                }
-            };
+            return produce(state, draft => {
+                draft.algorithmConfigResult[state.selectedAlgorithm!.id][action.settingID] = action.newValue;
+            });
         }
         case "DateRangeChanged": {
             let start = action.start;
@@ -185,7 +179,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 end = state.buildingDateRange.max;
             }
 
-            return {...state, buildingDateRange: {...state.buildingDateRange, start: start, end: end}};
+            return produce(state, draft => {
+                draft.buildingDateRange.start = start;
+                draft.buildingDateRange.end = end;
+            });
         }
     }
 }

@@ -220,7 +220,7 @@ export function App() {
             []
         );
 
-        if (!state.anomaliesReceived) {
+        if (state.anomalySearchCounter === 0) {
             return null;
         }
 

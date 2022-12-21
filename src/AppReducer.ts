@@ -19,7 +19,7 @@ type AppState = {
     availableSensors: Sensor[];
     sensorData: Record<string, number[] | undefined>;
 
-    anomaliesReceived: boolean;
+    anomalySearchCounter: number;
     anomalyScores: number[];
     anomalyScoreTimestamps: string[];
     anomalies: Anomaly[];
@@ -80,7 +80,7 @@ export function appDefaultState(): AppState {
         availableSensors: [],
         sensorData: {},
 
-        anomaliesReceived: false,
+        anomalySearchCounter: 0,
         anomalyScores: [],
         anomalyScoreTimestamps: [],
         anomalies: [],
@@ -153,7 +153,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 snackbarConfig: { severity: "success", message: `Found ${action.anomalies.length} anomalies.` },
                 isWaitingForAnomalyResult: false,
-                anomaliesReceived: true,
+                anomalySearchCounter: state.anomalySearchCounter + 1,
                 selectedAnomalyIndex: 0,
                 anomalyScores: action.scores,
                 anomalyScoreTimestamps: action.timestamps,

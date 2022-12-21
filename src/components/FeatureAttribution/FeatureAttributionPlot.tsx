@@ -88,7 +88,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
     if (!props.algorithm.explainable) {
         return (
             <Alert severity="info" variant="outlined">
-                The last used Algorithm "{props.algorithm.name}" does not provide information about feature attribution.
+                The last used algorithm "{props.algorithm.name}" does not provide information about feature attribution.
             </Alert>
         );
     }

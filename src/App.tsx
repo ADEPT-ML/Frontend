@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import "./styles.css";
-import { appDefaultState, appReducer } from "./AppReducer";
+import { appDefaultState, appReducer, isConfigDirty } from "./AppReducer";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import Config from "./components/Configuration/Config";
@@ -310,6 +310,7 @@ export function App() {
                     <div id="grid-container">
                         <div id="config">
                             <Config
+                                configDirty={isConfigDirty(state)}
                                 buildings={state.buildingNames}
                                 selectedBuilding={state.config.selectedBuilding}
                                 sensors={state.availableSensors}

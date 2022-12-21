@@ -14,7 +14,7 @@ import { LoadingButton } from "@mui/lab";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { Settings } from "@mui/icons-material";
+import { Settings, Search, Check } from "@mui/icons-material";
 import deLocale from "date-fns/locale/de";
 import { Algorithm, DateRange, Sensor } from "../../App";
 import AlgorithmConfig, { AlgorithmConfiguration } from "./AlgorithmConfig";
@@ -38,6 +38,7 @@ type ConfigProps = {
     algoConfig: AlgorithmConfiguration | null;
     algo_config_result: Record<string, string | number | boolean> | null;
     onAlgoConfigChange: (id: string, value: string | number | boolean) => void;
+    configDirty: boolean;
 };
 
 function sensorSelected(sensors: Sensor[], s: Sensor) {
@@ -191,13 +192,14 @@ export default function Config(props: ConfigProps) {
                 </LocalizationProvider>
 
                 <LoadingButton
-                    disabled={!props.findingEnabled}
+                    disabled={!props.findingEnabled || !props.configDirty}
                     loading={props.calculating}
                     loadingPosition="center"
                     variant="outlined"
                     onClick={props.onFindAnomalies}
+                    endIcon={props.configDirty ? <Search /> : <Check />}
                 >
-                    Find Anomalies
+                    {props.configDirty ? "Find Anomalies" : "Configuration unchanged"}
                 </LoadingButton>
             </Stack>
             {algoConfigVisible(props) ? (

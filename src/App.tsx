@@ -250,7 +250,7 @@ export function App() {
                 </div>
                 <div id="features">
                     <FeatureAttributionPlot
-                        algorithm={state.config.selectedAlgorithm!}
+                        algorithm={state.configMemento!.selectedAlgorithm!}
                         baseURL={BASE_URL}
                         anomalyID={state.selectedAnomalyIndex}
                         uuid={UUID}

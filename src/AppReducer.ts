@@ -34,6 +34,8 @@ type AppState = {
         selectedSensors: Sensor[];
         algorithmConfigResult: AlgorithmSettingMap;
     };
+
+    configMemento: AppState["config"] | null;
 };
 
 type AppAction =
@@ -93,6 +95,8 @@ export function appDefaultState(): AppState {
             selectedSensors: [],
             algorithmConfigResult: {},
         },
+
+        configMemento: null,
     };
 }
 
@@ -155,6 +159,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 anomalyScoreTimestamps: action.timestamps,
                 anomalies: action.anomalies,
                 anomalyThreshold: action.threshold,
+                configMemento: structuredClone(state.config),
             };
         case "BuildingSelected":
             return produce(state, (draft) => {

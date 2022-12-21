@@ -83,7 +83,7 @@ function Prototypes(props: PrototypesProps) {
                 makeData(theme.palette.error.dark, pData.anomaly, "x3", "y1")
             ]}
             layout={prepareLayout(theme.palette.mode === "light")}
-            config={PlotConfig}
+            config={{...PlotConfig, staticPlot: true}}
             style={{width: "100%", height: "100%"}}
         />
     );

@@ -12,16 +12,11 @@ type AppState = {
     snackbarConfig: { severity: AlertColor; message: string } | null;
 
     buildingNames: string[];
-    selectedBuilding: string;
     buildingTimestamps: string[];
-    buildingDateRange: DateRange;
 
     availableAlgorithms: Algorithm[];
-    selectedAlgorithm: Algorithm | null;
-    algorithmConfigResult: AlgorithmSettingMap;
 
     availableSensors: Sensor[];
-    selectedSensors: Sensor[];
     sensorData: Record<string, number[] | undefined>;
 
     anomaliesReceived: boolean;
@@ -31,6 +26,14 @@ type AppState = {
     anomalyThreshold: number;
 
     selectedAnomalyIndex: number;
+
+    config: {
+        selectedBuilding: string;
+        buildingDateRange: DateRange;
+        selectedAlgorithm: Algorithm | null;
+        selectedSensors: Sensor[];
+        algorithmConfigResult: AlgorithmSettingMap;
+    };
 };
 
 type AppAction =
@@ -68,16 +71,11 @@ export function appDefaultState(): AppState {
         snackbarConfig: null,
 
         buildingNames: [],
-        selectedBuilding: "",
         buildingTimestamps: [],
-        buildingDateRange: { max: null, min: null, start: null, end: null },
 
         availableAlgorithms: [],
-        selectedAlgorithm: null,
-        algorithmConfigResult: {},
 
         availableSensors: [],
-        selectedSensors: [],
         sensorData: {},
 
         anomaliesReceived: false,
@@ -87,6 +85,14 @@ export function appDefaultState(): AppState {
         anomalyThreshold: 0,
 
         selectedAnomalyIndex: 0,
+
+        config: {
+            selectedBuilding: "",
+            buildingDateRange: { max: null, min: null, start: null, end: null },
+            selectedAlgorithm: null,
+            selectedSensors: [],
+            algorithmConfigResult: {},
+        },
     };
 }
 
@@ -101,7 +107,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case "BuildingsFetched":
             return { ...state, buildingNames: action.buildings };
         case "AlgorithmSelected":
-            return { ...state, selectedAlgorithm: action.algorithm };
+            return produce(state, (draft) => {
+                draft.config.selectedAlgorithm = action.algorithm;
+            });
         case "AnomalySelected":
             return { ...state, selectedAnomalyIndex: action.anomalyIndex };
         case "ShowSnackbar":
@@ -127,7 +135,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                           max: new Date(action.timestamps[action.timestamps.length - 1]),
                           end: new Date(action.timestamps[action.timestamps.length - 1]),
                       };
-            return { ...state, buildingDateRange: newDateRange, buildingTimestamps: action.timestamps };
+            return produce(state, (draft) => {
+                draft.config.buildingDateRange = newDateRange;
+                draft.buildingTimestamps = action.timestamps;
+            });
         case "SensorFetchCompleted":
             return produce(state, (draft) => {
                 draft.sensorFetchesPending--;
@@ -146,30 +157,35 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 anomalyThreshold: action.threshold,
             };
         case "BuildingSelected":
-            return {
-                ...state,
-                selectedBuilding: action.buildingName,
-                buildingTimestamps: [],
-                sensorData: {},
-                selectedSensors: [],
-            };
+            return produce(state, (draft) => {
+                draft.config.selectedBuilding = action.buildingName;
+                draft.buildingTimestamps = [];
+                draft.sensorData = {};
+                draft.config.selectedSensors = [];
+            });
         case "SensorsFetched":
             return { ...state, availableSensors: action.sensors };
         case "SensorsSelected":
-            return { ...state, selectedSensors: action.selectedSensors };
+            return produce(state, (draft) => {
+                draft.config.selectedSensors = action.selectedSensors;
+            });
         case "AlgorithmsFetched": {
             let configs: AlgorithmSettingMap = {};
             for (const algo of action.algorithms) {
                 configs[algo.id] = buildDefaultMap(algo.config);
             }
-            return { ...state, algorithmConfigResult: configs, availableAlgorithms: action.algorithms };
+            return produce(state, (draft) => {
+                draft.config.algorithmConfigResult = configs;
+                draft.availableAlgorithms = action.algorithms;
+            });
         }
         case "AlgorithmSettingChanged": {
-            if (state.selectedAlgorithm === null) {
+            if (state.config.selectedAlgorithm === null) {
                 throw new Error("Algorithm config changed but no algorithm is selected.");
             }
             return produce(state, (draft) => {
-                draft.algorithmConfigResult[state.selectedAlgorithm!.id][action.settingID] = action.newValue;
+                draft.config.algorithmConfigResult[state.config.selectedAlgorithm!.id][action.settingID] =
+                    action.newValue;
             });
         }
         case "DateRangeChanged": {
@@ -182,21 +198,22 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 end.setHours(23, 59, 59);
             }
 
-            if (state.buildingDateRange.min === null || state.buildingDateRange.max === null) {
+            const currentRange = state.config.buildingDateRange;
+            if (currentRange.min === null || currentRange.max === null) {
                 throw new Error("Cannot update DateRange when limits are unknown.");
             }
 
-            if (start !== null && start < state.buildingDateRange.min) {
-                start = state.buildingDateRange.min;
+            if (start !== null && start < currentRange.min) {
+                start = currentRange.min;
             }
 
-            if (end !== null && end > state.buildingDateRange.max) {
-                end = state.buildingDateRange.max;
+            if (end !== null && end > currentRange.max) {
+                end = currentRange.max;
             }
 
             return produce(state, (draft) => {
-                draft.buildingDateRange.start = start;
-                draft.buildingDateRange.end = end;
+                draft.config.buildingDateRange.start = start;
+                draft.config.buildingDateRange.end = end;
             });
         }
     }

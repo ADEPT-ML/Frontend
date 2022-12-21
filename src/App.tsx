@@ -152,7 +152,7 @@ export function App() {
             }
 
             dispatch({ type: "SensorFetchStarted" });
-            const sensors_url = "/buildings/" + state.selectedBuilding + "/sensors/" + s.type;
+            const sensors_url = "/buildings/" + state.config.selectedBuilding + "/sensors/" + s.type;
             makeNetworkFetch(
                 sensors_url,
                 (result) =>
@@ -169,11 +169,11 @@ export function App() {
     function canFindAnomalies(): boolean {
         return (
             state.sensorFetchesPending === 0 &&
-            state.selectedBuilding !== "" &&
-            state.selectedSensors.length > 0 &&
-            state.selectedAlgorithm !== null &&
-            state.buildingDateRange.start !== null &&
-            state.buildingDateRange.end !== null
+            state.config.selectedBuilding !== "" &&
+            state.config.selectedSensors.length > 0 &&
+            state.config.selectedAlgorithm !== null &&
+            state.config.buildingDateRange.start !== null &&
+            state.config.buildingDateRange.end !== null
         );
     }
 
@@ -181,13 +181,13 @@ export function App() {
         dispatch({ type: "AnomalySearchStarted" });
 
         let url = new URL("/calculate/anomalies", BASE_URL);
-        url.searchParams.set("algo", String(state.selectedAlgorithm!.id));
-        url.searchParams.set("building", state.selectedBuilding);
-        url.searchParams.set("sensors", state.selectedSensors.map((s) => s.type).join(";"));
-        url.searchParams.set("start", state.buildingDateRange.start!.toISOString());
-        url.searchParams.set("stop", state.buildingDateRange.end!.toISOString());
+        url.searchParams.set("algo", String(state.config.selectedAlgorithm!.id));
+        url.searchParams.set("building", state.config.selectedBuilding);
+        url.searchParams.set("sensors", state.config.selectedSensors.map((s) => s.type).join(";"));
+        url.searchParams.set("start", state.config.buildingDateRange.start!.toISOString());
+        url.searchParams.set("stop", state.config.buildingDateRange.end!.toISOString());
 
-        const configMap = prepareMapToSend(state.algorithmConfigResult[state.selectedAlgorithm!.id]);
+        const configMap = prepareMapToSend(state.config.algorithmConfigResult[state.config.selectedAlgorithm!.id]);
         url.searchParams.set("config", JSON.stringify(configMap));
 
         const options = {
@@ -250,7 +250,7 @@ export function App() {
                 </div>
                 <div id="features">
                     <FeatureAttributionPlot
-                        algorithm={state.selectedAlgorithm!}
+                        algorithm={state.config.selectedAlgorithm!}
                         baseURL={BASE_URL}
                         anomalyID={state.selectedAnomalyIndex}
                         uuid={UUID}
@@ -311,13 +311,13 @@ export function App() {
                         <div id="config">
                             <Config
                                 buildings={state.buildingNames}
-                                selectedBuilding={state.selectedBuilding}
+                                selectedBuilding={state.config.selectedBuilding}
                                 sensors={state.availableSensors}
-                                selectedSensors={state.selectedSensors}
+                                selectedSensors={state.config.selectedSensors}
                                 algorithms={state.availableAlgorithms}
-                                selectedAlgorithm={state.selectedAlgorithm}
+                                selectedAlgorithm={state.config.selectedAlgorithm}
                                 calculating={state.isWaitingForAnomalyResult}
-                                dateRange={state.buildingDateRange}
+                                dateRange={state.config.buildingDateRange}
                                 onDateRangeChange={(newStart, newEnd) =>
                                     dispatch({
                                         type: "DateRangeChanged",
@@ -335,11 +335,15 @@ export function App() {
                                     })
                                 }
                                 onFindAnomalies={findAnomalies}
-                                algoConfig={state.selectedAlgorithm === null ? null : state.selectedAlgorithm.config}
-                                algo_config_result={
-                                    state.selectedAlgorithm === null
+                                algoConfig={
+                                    state.config.selectedAlgorithm === null
                                         ? null
-                                        : state.algorithmConfigResult[state.selectedAlgorithm.id]
+                                        : state.config.selectedAlgorithm.config
+                                }
+                                algo_config_result={
+                                    state.config.selectedAlgorithm === null
+                                        ? null
+                                        : state.config.algorithmConfigResult[state.config.selectedAlgorithm.id]
                                 }
                                 onAlgoConfigChange={(settingID, newValue) =>
                                     dispatch({
@@ -352,10 +356,12 @@ export function App() {
                         </div>
                         <div id="raw-data">
                             <RawDataPlot
-                                showHint={state.selectedBuilding === "" || state.selectedSensors.length < 1}
+                                showHint={
+                                    state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1
+                                }
                                 timestamps={state.buildingTimestamps}
                                 timeseries={state.sensorData}
-                                sensors={state.selectedSensors}
+                                sensors={state.config.selectedSensors}
                             />
                         </div>
                         {anomalySection()}

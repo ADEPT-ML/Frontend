@@ -118,7 +118,7 @@ function AnomalyTable(props: AnomalyTableProps) {
                                         colSpan={3}
                                         count={rows.length}
                                         rowsPerPage={rowsPerPage}
-                                        page={Math.min(page, Math.floor(rows.length / rowsPerPage))}
+                                        page={page}
                                         onPageChange={(event, page) => setPage(page)}
                                         labelDisplayedRows={() => {
                                             return `${page + 1} / ${Math.floor(rows.length / rowsPerPage)}`;

@@ -86,7 +86,7 @@ function Prototypes(props: PrototypesProps) {
     if (loading || pData === null) return <CircularProgress />;
 
     const values = [...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly];
-    const valuesNoNaN = values.filter((x) => !isNaN(x));
+    const valuesNoNaN = values.filter((x) => x !== null);
     const maxY = Math.max(...valuesNoNaN);
     const minY = Math.min(...valuesNoNaN);
 

@@ -85,8 +85,10 @@ function Prototypes(props: PrototypesProps) {
         );
     if (loading || pData === null) return <CircularProgress />;
 
-    const maxY = Math.max(...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly);
-    const minY = Math.min(...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly);
+    const values = [...pData.prototype_a, ...pData.prototype_b, ...pData.anomaly];
+    const valuesNoNaN = values.filter((x) => !isNaN(x));
+    const maxY = Math.max(...valuesNoNaN);
+    const minY = Math.min(...valuesNoNaN);
 
     const Plot = createPlotlyComponent(Plotly);
     return (

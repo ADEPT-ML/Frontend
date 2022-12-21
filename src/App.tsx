@@ -235,6 +235,7 @@ export function App() {
                 </div>
                 <div id="anomalies">
                     <AnomalyTable
+                        key={"AnomaliesTable" + state.anomalySearchCounter}
                         anomalies={state.anomalies}
                         selectedIndex={state.selectedAnomalyIndex}
                         onSelect={anomalySelectionDispatchCallback}

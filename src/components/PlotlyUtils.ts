@@ -1,6 +1,6 @@
 import { Config, Layout, Margin } from "plotly.js-basic-dist-min";
 
-export const PlotConfig: Partial<Config> = { responsive: true, displayModeBar: false };
+export const PlotConfig: Partial<Config> = { responsive: true, displayModeBar: false, scrollZoom: true };
 
 export class PlotLayout {
     protected layout: Partial<Layout>;

@@ -223,3 +223,28 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         }
     }
 }
+
+export function isConfigDirty(state: AppState): boolean {
+    const clean =
+        state.configMemento !== null &&
+        state.config.selectedAlgorithm !== null &&
+        state.config.buildingDateRange.start !== null &&
+        state.config.buildingDateRange.end !== null &&
+        state.config.buildingDateRange.start.getTime() === state.configMemento.buildingDateRange.start!.getTime() &&
+        state.config.buildingDateRange.end.getTime() === state.configMemento.buildingDateRange.end!.getTime() &&
+        state.config.selectedBuilding === state.configMemento.selectedBuilding &&
+        state.config.selectedAlgorithm.id === state.configMemento.selectedAlgorithm!.id;
+    if (!clean) return true;
+
+    for (const s of state.config.selectedSensors) {
+        const found = state.configMemento!.selectedSensors.find((oldSensor) => oldSensor.type === s.type);
+        if (found === undefined) return true;
+    }
+
+    const algoID = state.config.selectedAlgorithm!.id;
+    for (const key in state.config.algorithmConfigResult[algoID]) {
+        const val = state.configMemento!.algorithmConfigResult[algoID][key];
+        if (val !== state.config.algorithmConfigResult[algoID][key]) return true;
+    }
+    return false;
+}

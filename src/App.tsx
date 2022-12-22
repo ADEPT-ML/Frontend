@@ -7,7 +7,7 @@ import { appDefaultState, appReducer } from "./AppReducer";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import Config from "./components/Configuration/Config";
-import ErrorSnackbar from "./components/ErrorSnackbar";
+import MessageSnackbar from "./components/MessageSnackbar";
 import { AlgorithmConfiguration, prepareMapToSend } from "./components/Configuration/AlgorithmConfig";
 import RawDataPlot from "./components/RawDataPlot";
 import Prototypes from "./components/Prototypes";
@@ -301,7 +301,7 @@ export function App() {
         <React.StrictMode>
             <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme />
-                <ErrorSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
+                <MessageSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
                 <div id="root-container">
                     <div id="grid-container">
                         <div id="config">

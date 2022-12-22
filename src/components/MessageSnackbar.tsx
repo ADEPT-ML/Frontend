@@ -12,7 +12,7 @@ type SnackbarProps = {
     onClose: () => void;
 };
 
-export default function ErrorSnackbar(props: SnackbarProps) {
+export default function MessageSnackbar(props: SnackbarProps) {
     return props.messageQueue.length === 0 ? null : (
         <Snackbar
             key={props.messageQueue[0].key}

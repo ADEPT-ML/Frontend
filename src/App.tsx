@@ -79,18 +79,22 @@ export function App() {
 
         response.json().then((x) =>
             dispatch({
-                type: "ShowSnackbar",
-                severity: severity,
-                message: x["detail"],
+                type: "ShowMessage",
+                message: {
+                    severity: severity,
+                    message: x["detail"],
+                },
             })
         );
     }
 
     function handleNetworkError() {
         dispatch({
-            type: "ShowSnackbar",
-            severity: "error",
-            message: "Network Error: Something is wrong with the connection to the server.",
+            type: "ShowMessage",
+            message: {
+                severity: "error",
+                message: "Network Error: Something is wrong with the connection to the server.",
+            },
         });
     }
 
@@ -185,14 +189,22 @@ export function App() {
 
         makeNetworkFetch(
             url,
-            (json) =>
+            (json) => {
                 dispatch({
                     type: "AnomalySearchCompleted",
                     timestamps: json["timestamps"] as string[],
                     scores: json["error"] as number[],
                     anomalies: json["anomalies"] as Anomaly[],
                     threshold: json["threshold"] as number,
-                }),
+                });
+                dispatch({
+                    type: "ShowMessage",
+                    message: {
+                        severity: "success",
+                        message: `Found ${json["anomalies"].length} anomalies.`,
+                    },
+                });
+            },
             () => dispatch({ type: "AnomalySearchFailed" }),
             options
         );
@@ -289,13 +301,7 @@ export function App() {
         <React.StrictMode>
             <ThemeProvider theme={theme}>
                 <CssBaseline enableColorScheme />
-                {state.snackbarConfig ? (
-                    <ErrorSnackbar
-                        severity={state.snackbarConfig.severity}
-                        message={state.snackbarConfig.message}
-                        onClose={() => dispatch({ type: "HideSnackbar" })}
-                    />
-                ) : null}
+                <ErrorSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
                 <div id="root-container">
                     <div id="grid-container">
                         <div id="config">

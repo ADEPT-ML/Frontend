@@ -1,28 +1,31 @@
 import * as React from "react";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
-import { AlertColor } from "@mui/material";
+import { AppState } from "../AppReducer";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
 type SnackbarProps = {
-    severity: AlertColor;
-    message: string;
+    messageQueue: AppState["messageQueue"];
     onClose: () => void;
 };
 
 export default function ErrorSnackbar(props: SnackbarProps) {
-    return (
+    return props.messageQueue.length === 0 ? null : (
         <Snackbar
+            key={props.messageQueue[0].key}
             anchorOrigin={{ vertical: "top", horizontal: "center" }}
             open={true}
-            autoHideDuration={6000}
-            onClose={props.onClose}
+            autoHideDuration={props.messageQueue[0].timeout || 6000}
+            onClose={(_, reason) => {
+                if (reason === "clickaway") return;
+                props.onClose();
+            }}
         >
-            <Alert onClose={props.onClose} severity={props.severity} sx={{ width: "100%" }}>
-                {props.message}
+            <Alert onClose={props.onClose} severity={props.messageQueue[0].severity} sx={{ width: "100%" }}>
+                {props.messageQueue[0].message}
             </Alert>
         </Snackbar>
     );

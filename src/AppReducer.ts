@@ -9,7 +9,7 @@ export type AppState = {
     isLightMode: boolean;
     isWaitingForAnomalyResult: boolean;
     sensorFetchesPending: number;
-    snackbarConfig: { severity: AlertColor; message: string } | null;
+    messageQueue: { severity: AlertColor; message: string; timeout?: number; key: string }[];
 
     buildingNames: string[];
     buildingTimestamps: string[];
@@ -39,6 +39,8 @@ export type AppState = {
 };
 
 type AppAction =
+    | { type: "ShowMessage"; message: { severity: AlertColor; message: string; timeout?: number } }
+    | { type: "MessageDone" }
     | { type: "UpdateLightMode"; isLightMode: boolean }
     | { type: "SensorFetchStarted" }
     | { type: "SensorFetchFailed" }
@@ -51,8 +53,6 @@ type AppAction =
     | { type: "AlgorithmsFetched"; algorithms: Algorithm[] }
     | { type: "AlgorithmSelected"; algorithm: Algorithm }
     | { type: "AnomalySelected"; anomalyIndex: number }
-    | { type: "ShowSnackbar"; severity: AlertColor; message: string }
-    | { type: "HideSnackbar" }
     | { type: "AnomalySearchStarted" }
     | { type: "AnomalySearchFailed" }
     | {
@@ -70,7 +70,7 @@ export function appDefaultState(): AppState {
         isLightMode: false,
         isWaitingForAnomalyResult: false,
         sensorFetchesPending: 0,
-        snackbarConfig: null,
+        messageQueue: [],
 
         buildingNames: [],
         buildingTimestamps: [],
@@ -102,6 +102,14 @@ export function appDefaultState(): AppState {
 
 export function appReducer(state: AppState, action: AppAction): AppState {
     switch (action.type) {
+        case "ShowMessage":
+            return produce(state, (draft) => {
+                draft.messageQueue.push({ ...action.message, key: "Message" + Math.random().toString() });
+            });
+        case "MessageDone":
+            return produce(state, (draft) => {
+                draft.messageQueue.shift();
+            });
         case "UpdateLightMode":
             return { ...state, isLightMode: action.isLightMode };
         case "SensorFetchStarted":
@@ -116,10 +124,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             });
         case "AnomalySelected":
             return { ...state, selectedAnomalyIndex: action.anomalyIndex };
-        case "ShowSnackbar":
-            return { ...state, snackbarConfig: { severity: action.severity, message: action.message } };
-        case "HideSnackbar":
-            return { ...state, snackbarConfig: null };
         case "AnomalySearchStarted":
             return { ...state, isWaitingForAnomalyResult: true };
         case "AnomalySearchFailed":
@@ -151,7 +155,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case "AnomalySearchCompleted":
             return {
                 ...state,
-                snackbarConfig: { severity: "success", message: `Found ${action.anomalies.length} anomalies.` },
                 isWaitingForAnomalyResult: false,
                 anomalySearchCounter: state.anomalySearchCounter + 1,
                 selectedAnomalyIndex: 0,

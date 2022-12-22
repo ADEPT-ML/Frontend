@@ -25,10 +25,10 @@ export default function MessageSnackbar(props: SnackbarProps) {
             }}
         >
             <Alert
-                variant={"standard"}
+                variant={"outlined"}
                 onClose={props.onClose}
                 severity={props.messageQueue[0].severity}
-                sx={{ width: "100%" }}
+                sx={{ width: "100%",  bgcolor: "background.paper" }}
             >
                 {props.messageQueue[0].message}
             </Alert>

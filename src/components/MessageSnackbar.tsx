@@ -24,7 +24,7 @@ export default function MessageSnackbar(props: SnackbarProps) {
                 props.onClose();
             }}
         >
-            <Alert onClose={props.onClose} severity={props.messageQueue[0].severity} sx={{ width: "100%" }}>
+            <Alert variant={"standard"} onClose={props.onClose} severity={props.messageQueue[0].severity} sx={{ width: "100%" }}>
                 {props.messageQueue[0].message}
             </Alert>
         </Snackbar>

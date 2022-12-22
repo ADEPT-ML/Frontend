@@ -65,68 +65,79 @@ function AnomalyTable(props: AnomalyTableProps) {
         hour12: false,
     } as const;
 
+    function header() {
+        return (
+            <TableHead>
+                <TableRow>
+                    <TableCell padding="none"></TableCell>
+                    {headCells.map((headCell) => (
+                        <TableCell key={headCell.id} align="center">
+                            {headCell.label}
+                        </TableCell>
+                    ))}
+                </TableRow>
+            </TableHead>
+        );
+    }
+
+    function body() {
+        function makeRow(id: number, time: string, type: string, index: number) {
+            const isItemSelected = isSelected(id);
+            return id === -1 ? (
+                <TableRow key={"empty" + index} sx={{ visibility: "hidden" }}>
+                    <TableCell align="center">-</TableCell>
+                </TableRow>
+            ) : (
+                <TableRow hover onClick={(event) => handleClick(event, id)} key={id} selected={isItemSelected}>
+                    <TableCell padding="checkbox">
+                        <Radio color="primary" checked={isItemSelected} />
+                    </TableCell>
+                    <TableCell component="td" align="center">
+                        {new Date(time).toLocaleString(undefined, dateOptions)}
+                    </TableCell>
+                    <TableCell align="center">{type}</TableCell>
+                </TableRow>
+            );
+        }
+
+        return (
+            <TableBody>
+                {(paginationEnabled ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : rows).map(
+                    (row, index) => makeRow(row.id, row.time, row.type, index)
+                )}
+            </TableBody>
+        );
+    }
+
+    function pagination() {
+        return !paginationEnabled ? null : (
+            <TableFooter>
+                <TableRow>
+                    <TablePagination
+                        sx={{ borderBottom: "None" }}
+                        rowsPerPageOptions={[]}
+                        colSpan={3}
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={(event, page) => setPage(page)}
+                        labelDisplayedRows={() => {
+                            return `${page + 1} / ${Math.floor(rows.length / rowsPerPage)}`;
+                        }}
+                    />
+                </TableRow>
+            </TableFooter>
+        );
+    }
+
     function table() {
         return (
             <Paper className={`${css.tablePaper} ${paginationEnabled ? "" : css.scrollPaper}`} elevation={2}>
                 <TableContainer className={css.slimScrollbar} sx={{ maxHeight: "100%" }}>
                     <Table stickyHeader size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell padding="none"></TableCell>
-                                {headCells.map((headCell) => (
-                                    <TableCell key={headCell.id} align="center">
-                                        {headCell.label}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {(paginationEnabled
-                                ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : rows
-                            ).map((row, index) => {
-                                const isItemSelected = isSelected(row.id);
-
-                                return row.id === -1 ? (
-                                    <TableRow key={"empty" + index} sx={{ visibility: "hidden" }}>
-                                        <TableCell align="center">-</TableCell>
-                                    </TableRow>
-                                ) : (
-                                    <TableRow
-                                        hover
-                                        onClick={(event) => handleClick(event, row.id)}
-                                        key={row.id}
-                                        selected={isItemSelected}
-                                    >
-                                        <TableCell padding="checkbox">
-                                            <Radio color="primary" checked={isItemSelected} />
-                                        </TableCell>
-                                        <TableCell component="td" align="center">
-                                            {new Date(row.time).toLocaleString(undefined, dateOptions)}
-                                        </TableCell>
-                                        <TableCell align="center">{row.type}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                        {!paginationEnabled ? null : (
-                            <TableFooter>
-                                <TableRow>
-                                    <TablePagination
-                                        sx={{ borderBottom: "None" }}
-                                        rowsPerPageOptions={[]}
-                                        colSpan={3}
-                                        count={rows.length}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        onPageChange={(event, page) => setPage(page)}
-                                        labelDisplayedRows={() => {
-                                            return `${page + 1} / ${Math.floor(rows.length / rowsPerPage)}`;
-                                        }}
-                                    />
-                                </TableRow>
-                            </TableFooter>
-                        )}
+                        {header()}
+                        {body()}
+                        {pagination()}
                     </Table>
                 </TableContainer>
             </Paper>

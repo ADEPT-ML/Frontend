@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import "./styles.css";
-import { appDefaultState, appReducer } from "./AppReducer";
+import { appDefaultState, appReducer, UserMessage } from "./AppReducer";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import Config from "./components/Configuration/Config";
@@ -12,6 +12,7 @@ import { AlgorithmConfiguration, prepareMapToSend } from "./components/Configura
 import RawDataPlot from "./components/RawDataPlot";
 import Prototypes from "./components/Prototypes";
 import FeatureAttributionPlot from "./components/FeatureAttribution/FeatureAttributionPlot";
+import { MessagingContext } from "./components/MessagingContext";
 
 export type Algorithm = {
     name: string;
@@ -296,52 +297,59 @@ export function App() {
             }),
         [state.isLightMode]
     );
+    const messagingCallback = useCallback((msg: UserMessage) => dispatch({ type: "ShowMessage", message: msg }), []);
+
+    const config = (
+        <Config
+            state={state}
+            onDateRangeChange={(newStart, newEnd) =>
+                dispatch({
+                    type: "DateRangeChanged",
+                    start: newStart,
+                    end: newEnd,
+                })
+            }
+            onBuildingChange={handleBuildingChange}
+            onSensorChange={handleSensorChange}
+            onAlgorithmChange={(newAlgo) =>
+                dispatch({
+                    type: "AlgorithmSelected",
+                    algorithm: newAlgo,
+                })
+            }
+            onFindAnomalies={findAnomalies}
+            onAlgoConfigChange={(settingID, newValue) =>
+                dispatch({
+                    type: "AlgorithmSettingChanged",
+                    settingID: settingID,
+                    newValue: newValue,
+                })
+            }
+        />
+    );
+
+    const rawDataPlot = (
+        <RawDataPlot
+            showHint={state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1}
+            timestamps={state.buildingTimestamps}
+            timeseries={state.sensorData}
+            sensors={state.config.selectedSensors}
+        />
+    );
 
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline enableColorScheme />
-            <MessageSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
-            <div id="root-container">
-                <div id="grid-container">
-                    <div id="config">
-                        <Config
-                            state={state}
-                            onDateRangeChange={(newStart, newEnd) =>
-                                dispatch({
-                                    type: "DateRangeChanged",
-                                    start: newStart,
-                                    end: newEnd,
-                                })
-                            }
-                            onBuildingChange={handleBuildingChange}
-                            onSensorChange={handleSensorChange}
-                            onAlgorithmChange={(newAlgo) =>
-                                dispatch({
-                                    type: "AlgorithmSelected",
-                                    algorithm: newAlgo,
-                                })
-                            }
-                            onFindAnomalies={findAnomalies}
-                            onAlgoConfigChange={(settingID, newValue) =>
-                                dispatch({
-                                    type: "AlgorithmSettingChanged",
-                                    settingID: settingID,
-                                    newValue: newValue,
-                                })
-                            }
-                        />
+        <MessagingContext.Provider value={messagingCallback}>
+            <ThemeProvider theme={theme}>
+                <CssBaseline enableColorScheme />
+                <MessageSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
+                <div id="root-container">
+                    <div id="grid-container">
+                        <div id="config">{config}</div>
+                        <div id="raw-data">{rawDataPlot}</div>
+                        {anomalySection()}
                     </div>
-                    <div id="raw-data">
-                        <RawDataPlot
-                            showHint={state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1}
-                            timestamps={state.buildingTimestamps}
-                            timeseries={state.sensorData}
-                            sensors={state.config.selectedSensors}
-                        />
-                    </div>
-                    {anomalySection()}
                 </div>
-            </div>
-        </ThemeProvider>
+            </ThemeProvider>
+        </MessagingContext.Provider>
     );
 }

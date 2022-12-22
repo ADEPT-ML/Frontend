@@ -5,11 +5,21 @@ import produce from "immer";
 
 type AlgorithmSettingMap = Record<number, Record<string, ValueType>>;
 
+export type UserMessage = {
+    severity: AlertColor;
+    message: string;
+    timeout?: number;
+};
+
+type KeyedUserMessage = UserMessage & {
+    key: string;
+};
+
 export type AppState = {
     isLightMode: boolean;
     isWaitingForAnomalyResult: boolean;
     sensorFetchesPending: number;
-    messageQueue: { severity: AlertColor; message: string; timeout?: number; key: string }[];
+    messageQueue: KeyedUserMessage[];
 
     buildingNames: string[];
     buildingTimestamps: string[];
@@ -39,7 +49,7 @@ export type AppState = {
 };
 
 type AppAction =
-    | { type: "ShowMessage"; message: { severity: AlertColor; message: string; timeout?: number } }
+    | { type: "ShowMessage"; message: UserMessage }
     | { type: "MessageDone" }
     | { type: "UpdateLightMode"; isLightMode: boolean }
     | { type: "SensorFetchStarted" }

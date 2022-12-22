@@ -165,7 +165,7 @@ export function App() {
                         sensorType: s.type,
                         sensorData: result["sensor"] as number[],
                     }),
-                () => dispatch({ type: "SensorFetchFailed" })
+                () => dispatch({ type: "SensorFetchFailed", sensorType: s.type })
             );
         }
     }

@@ -43,7 +43,7 @@ type AppAction =
     | { type: "MessageDone" }
     | { type: "UpdateLightMode"; isLightMode: boolean }
     | { type: "SensorFetchStarted" }
-    | { type: "SensorFetchFailed" }
+    | { type: "SensorFetchFailed"; sensorType: string }
     | { type: "SensorFetchCompleted"; sensorType: string; sensorData: number[] }
     | { type: "SensorsFetched"; sensors: Sensor[] }
     | { type: "SensorsSelected"; selectedSensors: Sensor[] }
@@ -115,7 +115,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case "SensorFetchStarted":
             return { ...state, sensorFetchesPending: state.sensorFetchesPending + 1 };
         case "SensorFetchFailed":
-            return { ...state, sensorFetchesPending: state.sensorFetchesPending - 1 };
+            return produce(state, (draft) => {
+                draft.sensorFetchesPending--;
+                draft.config.selectedSensors = draft.config.selectedSensors.filter((s) => s.type !== action.sensorType);
+            });
         case "BuildingsFetched":
             return { ...state, buildingNames: action.buildings };
         case "AlgorithmSelected":

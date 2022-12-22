@@ -298,54 +298,50 @@ export function App() {
     );
 
     return (
-        <React.StrictMode>
-            <ThemeProvider theme={theme}>
-                <CssBaseline enableColorScheme />
-                <MessageSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
-                <div id="root-container">
-                    <div id="grid-container">
-                        <div id="config">
-                            <Config
-                                state={state}
-                                onDateRangeChange={(newStart, newEnd) =>
-                                    dispatch({
-                                        type: "DateRangeChanged",
-                                        start: newStart,
-                                        end: newEnd,
-                                    })
-                                }
-                                onBuildingChange={handleBuildingChange}
-                                onSensorChange={handleSensorChange}
-                                onAlgorithmChange={(newAlgo) =>
-                                    dispatch({
-                                        type: "AlgorithmSelected",
-                                        algorithm: newAlgo,
-                                    })
-                                }
-                                onFindAnomalies={findAnomalies}
-                                onAlgoConfigChange={(settingID, newValue) =>
-                                    dispatch({
-                                        type: "AlgorithmSettingChanged",
-                                        settingID: settingID,
-                                        newValue: newValue,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div id="raw-data">
-                            <RawDataPlot
-                                showHint={
-                                    state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1
-                                }
-                                timestamps={state.buildingTimestamps}
-                                timeseries={state.sensorData}
-                                sensors={state.config.selectedSensors}
-                            />
-                        </div>
-                        {anomalySection()}
+        <ThemeProvider theme={theme}>
+            <CssBaseline enableColorScheme />
+            <MessageSnackbar messageQueue={state.messageQueue} onClose={() => dispatch({ type: "MessageDone" })} />
+            <div id="root-container">
+                <div id="grid-container">
+                    <div id="config">
+                        <Config
+                            state={state}
+                            onDateRangeChange={(newStart, newEnd) =>
+                                dispatch({
+                                    type: "DateRangeChanged",
+                                    start: newStart,
+                                    end: newEnd,
+                                })
+                            }
+                            onBuildingChange={handleBuildingChange}
+                            onSensorChange={handleSensorChange}
+                            onAlgorithmChange={(newAlgo) =>
+                                dispatch({
+                                    type: "AlgorithmSelected",
+                                    algorithm: newAlgo,
+                                })
+                            }
+                            onFindAnomalies={findAnomalies}
+                            onAlgoConfigChange={(settingID, newValue) =>
+                                dispatch({
+                                    type: "AlgorithmSettingChanged",
+                                    settingID: settingID,
+                                    newValue: newValue,
+                                })
+                            }
+                        />
                     </div>
+                    <div id="raw-data">
+                        <RawDataPlot
+                            showHint={state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1}
+                            timestamps={state.buildingTimestamps}
+                            timeseries={state.sensorData}
+                            sensors={state.config.selectedSensors}
+                        />
+                    </div>
+                    {anomalySection()}
                 </div>
-            </ThemeProvider>
-        </React.StrictMode>
+            </div>
+        </ThemeProvider>
     );
 }

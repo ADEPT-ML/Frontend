@@ -16,29 +16,19 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Settings, Search, Check } from "@mui/icons-material";
 import deLocale from "date-fns/locale/de";
-import { Algorithm, DateRange, Sensor } from "../../App";
-import AlgorithmConfig, { AlgorithmConfiguration } from "./AlgorithmConfig";
+import { Algorithm, Sensor } from "../../App";
+import AlgorithmConfig from "./AlgorithmConfig";
 import { useState } from "react";
+import { AppState, isConfigDirty } from "../../AppReducer";
 
 type ConfigProps = {
-    selectedBuilding: string;
-    buildings: string[];
-    selectedSensors: Sensor[];
-    sensors: Sensor[];
-    selectedAlgorithm: Algorithm | null;
-    algorithms: Algorithm[];
-    calculating: boolean;
-    findingEnabled: boolean;
-    dateRange: DateRange;
+    state: AppState;
     onDateRangeChange: (start: Date | null, end: Date | null) => void;
     onBuildingChange: (buildingName: string) => void;
     onSensorChange: (selectedSensors: Sensor[]) => void;
     onAlgorithmChange: (newAlgorithm: Algorithm) => void;
     onFindAnomalies: () => void;
-    algoConfig: AlgorithmConfiguration | null;
-    algo_config_result: Record<string, string | number | boolean> | null;
     onAlgoConfigChange: (id: string, value: string | number | boolean) => void;
-    configDirty: boolean;
 };
 
 function sensorSelected(sensors: Sensor[], s: Sensor) {
@@ -89,17 +79,30 @@ function multiSensorSelect(
 }
 
 function algoConfigVisible(props: ConfigProps): boolean {
-    return props.algoConfig !== null && props.algoConfig.settings.length > 0;
+    const selectedAlgorithm = props.state.config.selectedAlgorithm;
+    return selectedAlgorithm !== null && selectedAlgorithm.config.settings.length > 0;
+}
+
+function canFindAnomalies(state: AppState): boolean {
+    return (
+        state.sensorFetchesPending === 0 &&
+        state.config.selectedBuilding !== "" &&
+        state.config.selectedSensors.length > 0 &&
+        state.config.selectedAlgorithm !== null &&
+        state.config.buildingDateRange.start !== null &&
+        state.config.buildingDateRange.end !== null
+    );
 }
 
 export default function Config(props: ConfigProps) {
     const [algorithmConfigOpen, setAlgorithmConfigOpen] = useState<boolean>(false);
+    const configDirty = isConfigDirty(props.state);
 
     function setDate(value: Date | null, start: boolean) {
         if (start) {
-            props.onDateRangeChange(value, props.dateRange.end);
+            props.onDateRangeChange(value, props.state.config.buildingDateRange.end);
         } else {
-            props.onDateRangeChange(props.dateRange.start, value);
+            props.onDateRangeChange(props.state.config.buildingDateRange.start, value);
         }
     }
 
@@ -113,11 +116,11 @@ export default function Config(props: ConfigProps) {
                         labelId="building-label"
                         id="building-select"
                         label="Building"
-                        value={props.selectedBuilding}
-                        disabled={props.buildings.length === 0 || props.calculating}
+                        value={props.state.config.selectedBuilding}
+                        disabled={props.state.buildingNames.length === 0 || props.state.isWaitingForAnomalyResult}
                         onChange={(e) => props.onBuildingChange(e.target.value)}
                     >
-                        {props.buildings.map((b) => (
+                        {props.state.buildingNames.map((b) => (
                             <MenuItem value={b} key={b}>
                                 {b}
                             </MenuItem>
@@ -126,9 +129,9 @@ export default function Config(props: ConfigProps) {
                 </FormControl>
 
                 {multiSensorSelect(
-                    props.sensors,
-                    props.selectedSensors,
-                    props.sensors.length === 0 || props.calculating,
+                    props.state.availableSensors,
+                    props.state.config.selectedSensors,
+                    props.state.availableSensors.length === 0 || props.state.isWaitingForAnomalyResult,
                     props.onSensorChange
                 )}
 
@@ -139,11 +142,17 @@ export default function Config(props: ConfigProps) {
                             labelId="model-label"
                             id="model-select"
                             label="Algorithm"
-                            value={props.selectedAlgorithm ? JSON.stringify(props.selectedAlgorithm) : ""}
-                            disabled={props.algorithms.length === 0 || props.calculating}
+                            value={
+                                props.state.config.selectedAlgorithm
+                                    ? JSON.stringify(props.state.config.selectedAlgorithm)
+                                    : ""
+                            }
+                            disabled={
+                                props.state.availableAlgorithms.length === 0 || props.state.isWaitingForAnomalyResult
+                            }
                             onChange={(e) => props.onAlgorithmChange(JSON.parse(e.target.value) as Algorithm)}
                         >
-                            {props.algorithms.map((a) => (
+                            {props.state.availableAlgorithms.map((a) => (
                                 <MenuItem value={JSON.stringify(a)} key={a.id}>
                                     {a.name}
                                 </MenuItem>
@@ -154,7 +163,7 @@ export default function Config(props: ConfigProps) {
                         <IconButton
                             sx={{ marginLeft: "-75px" }}
                             aria-label="Algorithm settings"
-                            disabled={props.calculating}
+                            disabled={props.state.isWaitingForAnomalyResult}
                             onClick={() => setAlgorithmConfigOpen(true)}
                         >
                             <Settings />
@@ -166,10 +175,13 @@ export default function Config(props: ConfigProps) {
                     <Stack direction="row" justifyContent="space-between" spacing={1}>
                         <DatePicker
                             label="Start date"
-                            value={props.dateRange.start}
-                            minDate={props.dateRange.min}
-                            maxDate={props.dateRange.end}
-                            disabled={props.calculating || props.dateRange.min === null}
+                            value={props.state.config.buildingDateRange.start}
+                            minDate={props.state.config.buildingDateRange.min}
+                            maxDate={props.state.config.buildingDateRange.end}
+                            disabled={
+                                props.state.isWaitingForAnomalyResult ||
+                                props.state.config.buildingDateRange.min === null
+                            }
                             mask={dateMask}
                             onChange={(newValue) => {
                                 setDate(newValue, true);
@@ -178,10 +190,13 @@ export default function Config(props: ConfigProps) {
                         />
                         <DatePicker
                             label="End date"
-                            value={props.dateRange.end}
-                            minDate={props.dateRange.start}
-                            maxDate={props.dateRange.max}
-                            disabled={props.calculating || props.dateRange.max === null}
+                            value={props.state.config.buildingDateRange.end}
+                            minDate={props.state.config.buildingDateRange.start}
+                            maxDate={props.state.config.buildingDateRange.max}
+                            disabled={
+                                props.state.isWaitingForAnomalyResult ||
+                                props.state.config.buildingDateRange.max === null
+                            }
                             mask={dateMask}
                             onChange={(newValue) => {
                                 setDate(newValue, false);
@@ -192,14 +207,14 @@ export default function Config(props: ConfigProps) {
                 </LocalizationProvider>
 
                 <LoadingButton
-                    disabled={!props.findingEnabled || !props.configDirty}
-                    loading={props.calculating}
+                    disabled={!canFindAnomalies(props.state) || !configDirty}
+                    loading={props.state.isWaitingForAnomalyResult}
                     loadingPosition="center"
                     variant="outlined"
                     onClick={props.onFindAnomalies}
-                    startIcon={props.configDirty ? <Search /> : <Check />}
+                    startIcon={configDirty ? <Search /> : <Check />}
                 >
-                    {props.configDirty ? "Find Anomalies" : "Configuration unchanged"}
+                    {configDirty ? "Find Anomalies" : "Configuration unchanged"}
                 </LoadingButton>
             </Stack>
             {algoConfigVisible(props) ? (
@@ -207,8 +222,10 @@ export default function Config(props: ConfigProps) {
                     isOpen={algorithmConfigOpen}
                     onClose={() => setAlgorithmConfigOpen(false)}
                     setValue={props.onAlgoConfigChange}
-                    config={props.algoConfig!}
-                    getValue={(id) => props.algo_config_result![id]}
+                    config={props.state.config.selectedAlgorithm!.config}
+                    getValue={(id) =>
+                        props.state.config.algorithmConfigResult[props.state.config.selectedAlgorithm!.id]![id]
+                    }
                 />
             ) : null}
         </>

@@ -5,7 +5,7 @@ import produce from "immer";
 
 type AlgorithmSettingMap = Record<number, Record<string, ValueType>>;
 
-type AppState = {
+export type AppState = {
     isLightMode: boolean;
     isWaitingForAnomalyResult: boolean;
     sensorFetchesPending: number;

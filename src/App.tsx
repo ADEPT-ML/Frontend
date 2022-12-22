@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { v4 as uuidv4 } from "uuid";
 import "./styles.css";
-import { appDefaultState, appReducer, isConfigDirty } from "./AppReducer";
+import { appDefaultState, appReducer } from "./AppReducer";
 import AnomalyScorePlot from "./components/AnomalyScorePlot";
 import AnomalyTable from "./components/AnomalyTable/AnomalyTable";
 import Config from "./components/Configuration/Config";
@@ -166,17 +166,6 @@ export function App() {
         }
     }
 
-    function canFindAnomalies(): boolean {
-        return (
-            state.sensorFetchesPending === 0 &&
-            state.config.selectedBuilding !== "" &&
-            state.config.selectedSensors.length > 0 &&
-            state.config.selectedAlgorithm !== null &&
-            state.config.buildingDateRange.start !== null &&
-            state.config.buildingDateRange.end !== null
-        );
-    }
-
     function findAnomalies() {
         dispatch({ type: "AnomalySearchStarted" });
 
@@ -311,15 +300,7 @@ export function App() {
                     <div id="grid-container">
                         <div id="config">
                             <Config
-                                configDirty={isConfigDirty(state)}
-                                buildings={state.buildingNames}
-                                selectedBuilding={state.config.selectedBuilding}
-                                sensors={state.availableSensors}
-                                selectedSensors={state.config.selectedSensors}
-                                algorithms={state.availableAlgorithms}
-                                selectedAlgorithm={state.config.selectedAlgorithm}
-                                calculating={state.isWaitingForAnomalyResult}
-                                dateRange={state.config.buildingDateRange}
+                                state={state}
                                 onDateRangeChange={(newStart, newEnd) =>
                                     dispatch({
                                         type: "DateRangeChanged",
@@ -327,7 +308,6 @@ export function App() {
                                         end: newEnd,
                                     })
                                 }
-                                findingEnabled={canFindAnomalies()}
                                 onBuildingChange={handleBuildingChange}
                                 onSensorChange={handleSensorChange}
                                 onAlgorithmChange={(newAlgo) =>
@@ -337,16 +317,6 @@ export function App() {
                                     })
                                 }
                                 onFindAnomalies={findAnomalies}
-                                algoConfig={
-                                    state.config.selectedAlgorithm === null
-                                        ? null
-                                        : state.config.selectedAlgorithm.config
-                                }
-                                algo_config_result={
-                                    state.config.selectedAlgorithm === null
-                                        ? null
-                                        : state.config.algorithmConfigResult[state.config.selectedAlgorithm.id]
-                                }
                                 onAlgoConfigChange={(settingID, newValue) =>
                                     dispatch({
                                         type: "AlgorithmSettingChanged",

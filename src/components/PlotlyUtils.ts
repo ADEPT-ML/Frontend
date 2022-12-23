@@ -14,6 +14,7 @@ export class PlotLayout {
     protected readonly lightMode: boolean;
 
     constructor(lightMode: boolean) {
+        this.lightMode = lightMode;
         this.layout = {
             autosize: true,
             paper_bgcolor: "rgba(0,0,0,0)",
@@ -29,14 +30,15 @@ export class PlotLayout {
                 zeroline: false,
             },
             showlegend: false,
+            font: {
+                family: "Roboto, sans-serif",
+            },
         };
-        this.lightMode = lightMode;
     }
 
     public withTitle(title: string): PlotLayout {
         this.layout.title = {
             font: {
-                family: "Roboto, sans-serif",
                 color: this.lightMode ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)",
                 size: 18,
             },

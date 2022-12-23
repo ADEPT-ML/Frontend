@@ -1,10 +1,10 @@
 import * as React from "react";
+import { useContext, useState } from "react";
 import Plotly, { Layout, PlotData } from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Alert, Theme, useTheme } from "@mui/material";
 import { Sensor } from "../App";
-import { PlotConfig, PlotLayout, ZoomHint } from "./PlotlyUtils";
-import { useContext, useState } from "react";
+import { PlotConfig, PlotLayout, rangeFromRelayoutEvent, ZoomHint } from "./PlotlyUtils";
 import { MessagingContext } from "./MessagingContext";
 
 type RawDataProps = {
@@ -16,7 +16,7 @@ type RawDataProps = {
     onZoomHint: () => void;
 };
 
-function prepareLayout(theme: Theme, range: string[]): Partial<Layout> {
+function prepareLayout(theme: Theme, range: { x: string[]; y: string[] }): Partial<Layout> {
     const lightTheme: boolean = theme.palette.mode === "light";
     const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
 
@@ -28,9 +28,8 @@ function prepareLayout(theme: Theme, range: string[]): Partial<Layout> {
     let layout = layoutBuilder.build();
 
     layout.yaxis!.automargin = true;
-    if (range !== null) {
-        layout.xaxis!.range = range;
-    }
+    layout.xaxis!.range = range.x;
+    layout.yaxis!.range = range.y;
     return layout;
 }
 
@@ -58,7 +57,7 @@ function prepareData(
 function RawDataPlot(props: RawDataProps) {
     const theme = useTheme();
     const messageSink = useContext(MessagingContext);
-    const [range, setRange] = useState<string[]>([]);
+    const [range, setRange] = useState<{ x: string[]; y: string[] }>({ x: [], y: [] });
 
     if (props.showHint) {
         return (
@@ -76,14 +75,10 @@ function RawDataPlot(props: RawDataProps) {
             config={PlotConfig}
             style={{ width: "100%", height: "100%" }}
             onRelayout={(e) => {
-                if (e["xaxis.range[0]"] === undefined) {
-                    setRange([]);
-                } else {
-                    setRange([e["xaxis.range[0]"] as any, e["xaxis.range[1]"] as any]);
-                    if (!props.zoomHintShown) {
-                        messageSink({ severity: "info", message: ZoomHint, timeout: 4000 });
-                        props.onZoomHint();
-                    }
+                setRange(rangeFromRelayoutEvent(e, range));
+                if (e["xaxis.autorange"] === undefined && !props.zoomHintShown) {
+                    messageSink({ severity: "info", message: ZoomHint, timeout: 4000 });
+                    props.onZoomHint();
                 }
             }}
         />

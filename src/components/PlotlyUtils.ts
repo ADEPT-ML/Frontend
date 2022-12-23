@@ -1,4 +1,4 @@
-import { Config, Layout, Margin } from "plotly.js-basic-dist-min";
+import { Config, Layout, Margin, PlotRelayoutEvent } from "plotly.js-basic-dist-min";
 
 export const PlotConfig: Partial<Config> = {
     responsive: true,
@@ -101,4 +101,24 @@ export class PlotLayout {
     public build(): Partial<Layout> {
         return this.layout;
     }
+}
+
+export function rangeFromRelayoutEvent(
+    e: PlotRelayoutEvent,
+    oldRange: { x: string[]; y: string[] }
+): { x: string[]; y: string[] } {
+    let newRange = { ...oldRange };
+    if (e["xaxis.autorange"] !== undefined) {
+        newRange = { ...newRange, x: [] };
+    }
+    if (e["yaxis.autorange"] !== undefined) {
+        newRange = { ...newRange, y: [] };
+    }
+    if (e["xaxis.range[0]"] !== undefined) {
+        newRange = { ...newRange, x: [e["xaxis.range[0]"] as any, e["xaxis.range[1]"] as any] };
+    }
+    if (e["yaxis.range[0]"] !== undefined) {
+        newRange = { ...newRange, y: [e["yaxis.range[0]"] as any, e["yaxis.range[1]"] as any] };
+    }
+    return newRange;
 }

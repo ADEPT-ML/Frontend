@@ -1,6 +1,6 @@
 FROM node:18.9.0 AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .env ./
 RUN npm install
 COPY ./src ./src
 RUN npx parcel build --no-source-maps ./src/index.html

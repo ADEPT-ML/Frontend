@@ -13,6 +13,7 @@
     "printWidth": 120
   },
   "devDependencies": {
+    "@types/node": "^18.11.17",
     "@types/plotly.js-basic-dist-min": "^2.12.1",
     "@types/react-plotly.js": "^2.5.2",
     "@types/uuid": "^9.0.0",

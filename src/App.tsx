@@ -298,6 +298,7 @@ export function App() {
         [state.isLightMode]
     );
     const messagingCallback = useCallback((msg: UserMessage) => dispatch({ type: "ShowMessage", message: msg }), []);
+    const zoomHintCallback = useCallback(() => dispatch({ type: "ZoomHintShown" }), []);
 
     const config = (
         <Config
@@ -330,10 +331,13 @@ export function App() {
 
     const rawDataPlot = (
         <RawDataPlot
+            key={"RawData" + state.config.selectedBuilding} //Reset on building change
             showHint={state.config.selectedBuilding === "" || state.config.selectedSensors.length < 1}
             timestamps={state.buildingTimestamps}
             timeseries={state.sensorData}
             sensors={state.config.selectedSensors}
+            zoomHintShown={state.plotZoomHintShown}
+            onZoomHint={zoomHintCallback}
         />
     );
 

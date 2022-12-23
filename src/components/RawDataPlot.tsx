@@ -3,26 +3,34 @@ import Plotly, { Layout, PlotData } from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Alert, Theme, useTheme } from "@mui/material";
 import { Sensor } from "../App";
-import { PlotConfig, PlotLayout } from "./PlotlyUtils";
+import { PlotConfig, PlotLayout, ZoomHint } from "./PlotlyUtils";
+import { useContext, useState } from "react";
+import { MessagingContext } from "./MessagingContext";
 
 type RawDataProps = {
     showHint: boolean;
     timestamps: string[];
     timeseries: Record<string, number[] | undefined>;
     sensors: Sensor[];
+    zoomHintShown: boolean;
+    onZoomHint: () => void;
 };
 
-function prepareLayout(theme: Theme): Partial<Layout> {
+function prepareLayout(theme: Theme, range: string[]): Partial<Layout> {
     const lightTheme: boolean = theme.palette.mode === "light";
     const colors = [theme.palette.primary.dark, theme.palette.secondary.dark, ...theme.additional_graph_colors];
 
-    let layout = new PlotLayout(lightTheme)
+    let layoutBuilder = new PlotLayout(lightTheme)
         .withTitle("Sensor data")
         .withLineColors(colors)
         .withMargins({ l: 20, r: 20, b: 30, t: 30 })
-        .withLegend()
-        .build();
+        .withLegend();
+    let layout = layoutBuilder.build();
+
     layout.yaxis!.automargin = true;
+    if (range !== null) {
+        layout.xaxis!.range = range;
+    }
     return layout;
 }
 
@@ -47,25 +55,11 @@ function prepareData(
     return result;
 }
 
-function renderPlot(
-    timestamps: string[],
-    timeseries: Record<string, number[] | undefined>,
-    sensors: Sensor[],
-    theme: Theme
-) {
-    const Plot = createPlotlyComponent(Plotly);
-    return (
-        <Plot
-            data={prepareData(timestamps, timeseries, sensors)}
-            layout={prepareLayout(theme)}
-            config={PlotConfig}
-            style={{ width: "100%", height: "100%" }}
-        />
-    );
-}
-
 function RawDataPlot(props: RawDataProps) {
     const theme = useTheme();
+    const messageSink = useContext(MessagingContext);
+    const [range, setRange] = useState<string[]>([]);
+
     if (props.showHint) {
         return (
             <Alert severity="info" variant="outlined">
@@ -73,7 +67,27 @@ function RawDataPlot(props: RawDataProps) {
             </Alert>
         );
     }
-    return renderPlot(props.timestamps, props.timeseries, props.sensors, theme);
+
+    const Plot = createPlotlyComponent(Plotly);
+    return (
+        <Plot
+            data={prepareData(props.timestamps, props.timeseries, props.sensors)}
+            layout={prepareLayout(theme, range)}
+            config={PlotConfig}
+            style={{ width: "100%", height: "100%" }}
+            onRelayout={(e) => {
+                if (e["xaxis.range[0]"] === undefined) {
+                    setRange([]);
+                } else {
+                    setRange([e["xaxis.range[0]"] as any, e["xaxis.range[1]"] as any]);
+                    if (!props.zoomHintShown) {
+                        messageSink({ severity: "info", message: ZoomHint, timeout: 4000 });
+                        props.onZoomHint();
+                    }
+                }
+            }}
+        />
+    );
 }
 
 export default React.memo(RawDataPlot);

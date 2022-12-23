@@ -37,6 +37,8 @@ export type AppState = {
 
     selectedAnomalyIndex: number;
 
+    plotZoomHintShown: boolean;
+
     config: {
         selectedBuilding: string;
         buildingDateRange: DateRange;
@@ -73,7 +75,8 @@ type AppAction =
           threshold: number;
       }
     | { type: "DateRangeChanged"; start: Date | null; end: Date | null }
-    | { type: "AlgorithmSettingChanged"; settingID: string; newValue: ValueType };
+    | { type: "AlgorithmSettingChanged"; settingID: string; newValue: ValueType }
+    | { type: "ZoomHintShown" };
 
 export function appDefaultState(): AppState {
     return {
@@ -105,6 +108,8 @@ export function appDefaultState(): AppState {
             selectedSensors: [],
             algorithmConfigResult: {},
         },
+
+        plotZoomHintShown: false,
 
         configMemento: null,
     };
@@ -141,6 +146,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return { ...state, isWaitingForAnomalyResult: true };
         case "AnomalySearchFailed":
             return { ...state, isWaitingForAnomalyResult: false };
+        case "ZoomHintShown":
+            return { ...state, plotZoomHintShown: true };
         case "BuildingTimestampsFetched":
             const newDateRange =
                 action.timestamps.length < 1

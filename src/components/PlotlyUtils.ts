@@ -2,6 +2,8 @@ import { Config, Layout, Margin } from "plotly.js-basic-dist-min";
 
 export const PlotConfig: Partial<Config> = { responsive: true, displayModeBar: false, scrollZoom: true };
 
+export const ZoomHint: string = "Double-click the plot to reset the zoom";
+
 export class PlotLayout {
     protected layout: Partial<Layout>;
     protected readonly lightMode: boolean;

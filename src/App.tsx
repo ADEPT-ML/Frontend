@@ -49,7 +49,7 @@ declare module "@mui/material/styles" {
     }
 }
 
-const BASE_URL = process.env.BACKEND_BASE_URL as string;
+const BASE_URL = process.env.BACKEND_BASE_URL as string; //Replaced by parcel at build time
 const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 const UUID = getOrSetUuid();
 

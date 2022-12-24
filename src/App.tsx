@@ -69,6 +69,9 @@ export function getOrSetUuid() {
 export function App() {
     const [state, dispatch] = useReducer(appReducer, null, appDefaultState);
 
+    const messagingCallback = useCallback((msg: UserMessage) => dispatch({ type: "ShowMessage", message: msg }), []);
+    const zoomHintCallback = useCallback(() => dispatch({ type: "ZoomHintShown" }), []);
+
     function handleApiError(response: Response) {
         let severity: "info" | "warning" | "error";
         if (response.status < 300) {
@@ -234,9 +237,12 @@ export function App() {
             <>
                 <div id="anomaly-score">
                     <AnomalyScorePlot
+                        key={"AnomalyScore" + state.anomalySearchCounter}
                         timestamps={state.anomalyScoreTimestamps}
                         errors={state.anomalyScores}
                         threshold={state.anomalyThreshold}
+                        zoomHintShown={state.plotZoomHintShown}
+                        onZoomHint={zoomHintCallback}
                     />
                 </div>
                 <div id="anomalies">
@@ -301,8 +307,6 @@ export function App() {
             }),
         [state.isLightMode]
     );
-    const messagingCallback = useCallback((msg: UserMessage) => dispatch({ type: "ShowMessage", message: msg }), []);
-    const zoomHintCallback = useCallback(() => dispatch({ type: "ZoomHintShown" }), []);
 
     const config = (
         <Config

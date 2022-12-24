@@ -4,11 +4,10 @@ import Plotly, { Layout, PlotData } from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Alert, CircularProgress, useTheme } from "@mui/material";
 import { PlotConfig, PlotLayout } from "./PlotlyUtils";
+import { UUID } from "../App";
 
 type PrototypesProps = {
     anomalyID: number;
-    baseURL: string;
-    uuid: string;
     networkFetch: (url: string | URL, action: (json: any) => void, onError: () => void, header: {}) => void;
 };
 
@@ -58,7 +57,7 @@ function Prototypes(props: PrototypesProps) {
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
     const options = {
-        headers: new Headers({ uuid: `${props.uuid}` }),
+        headers: new Headers({ uuid: `${UUID}` }),
     };
 
     useEffect(() => {

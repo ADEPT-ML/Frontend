@@ -4,14 +4,12 @@ import Plotly, { Layout } from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import * as css from "./styles.module.css";
 import { Alert, CircularProgress, Theme, useTheme } from "@mui/material";
-import { Algorithm } from "../../App";
+import { Algorithm, UUID } from "../../App";
 import { PlotConfig, PlotLayout } from "../PlotlyUtils";
 
 type AttributionProps = {
     anomalyID: number;
-    baseURL: string;
     algorithm: Algorithm;
-    uuid: string;
     networkFetch: (url: string | URL, action: (json: any) => void, onError: () => void, header: {}) => void;
 };
 
@@ -40,7 +38,7 @@ function FeatureAttributionPlot(props: AttributionProps) {
     const [loading, setLoading] = useState(false);
     const theme = useTheme();
     const options = {
-        headers: new Headers({ uuid: `${props.uuid}` }),
+        headers: new Headers({ uuid: `${UUID}` }),
     };
 
     useEffect(() => {

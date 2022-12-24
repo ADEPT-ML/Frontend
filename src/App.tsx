@@ -53,11 +53,7 @@ declare module "@mui/material/styles" {
     }
 }
 
-const BASE_URL = process.env.BACKEND_BASE_URL as string; //Replaced by parcel at build time
-const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
-const UUID = getOrSetUuid();
-
-export function getOrSetUuid() {
+function getOrSetUuid() {
     let local_uuid = sessionStorage.getItem("uuid");
     if (!local_uuid) {
         local_uuid = uuidv4();
@@ -65,6 +61,10 @@ export function getOrSetUuid() {
     }
     return local_uuid;
 }
+
+export const BASE_URL = process.env.BACKEND_BASE_URL as string; //Replaced by parcel at build time
+export const UUID = getOrSetUuid();
+const ADD_GRAPH_COLORS = ["#4CAF50", "#FFA726", "#D81B60"];
 
 export function App() {
     const [state, dispatch] = useReducer(appReducer, null, appDefaultState);
@@ -254,19 +254,12 @@ export function App() {
                     />
                 </div>
                 <div id="prototypes">
-                    <Prototypes
-                        anomalyID={state.selectedAnomalyIndex}
-                        baseURL={BASE_URL}
-                        uuid={UUID}
-                        networkFetch={makeNetworkFetch}
-                    />
+                    <Prototypes anomalyID={state.selectedAnomalyIndex} networkFetch={makeNetworkFetch} />
                 </div>
                 <div id="features">
                     <FeatureAttributionPlot
                         algorithm={state.configMemento!.selectedAlgorithm!}
-                        baseURL={BASE_URL}
                         anomalyID={state.selectedAnomalyIndex}
-                        uuid={UUID}
                         networkFetch={makeNetworkFetch}
                     />
                 </div>

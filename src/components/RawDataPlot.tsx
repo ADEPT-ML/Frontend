@@ -3,7 +3,7 @@ import { useContext, useState } from "react";
 import Plotly, { Layout, PlotData } from "plotly.js-basic-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Alert, Theme, useTheme } from "@mui/material";
-import { Sensor } from "../App";
+import { DateRange, Sensor } from "../App";
 import { PlotConfig, PlotLayout, rangeFromRelayoutEvent, ZoomHint } from "./PlotlyUtils";
 import { MessagingContext } from "./MessagingContext";
 
@@ -13,6 +13,7 @@ type RawDataProps = {
     timeseries: Record<string, number[] | undefined>;
     sensors: Sensor[];
     zoomHintShown: boolean;
+    dateRange: DateRange;
     onZoomHint: () => void;
 };
 
@@ -67,11 +68,36 @@ function RawDataPlot(props: RawDataProps) {
         );
     }
 
+    let layout = prepareLayout(theme, range);
+
+    const dateRangeDefined = !Object.entries(props.dateRange).some((kv) => kv[1] === null);
+    if (
+        dateRangeDefined &&
+        (props.dateRange.start! > props.dateRange.min! || props.dateRange.end! < props.dateRange.max!)
+    ) {
+        layout.shapes = [
+            {
+                type: "rect",
+                xref: "x",
+                x0: props.dateRange.start,
+                x1: props.dateRange.end,
+                yref: "paper",
+                y0: 0,
+                y1: 1,
+                line: {
+                    color: "rgba(255,255,255,0.9)",
+                    width: 1,
+                },
+                fillcolor: "rgba(255,255,255,0.1)",
+            },
+        ];
+    }
+
     const Plot = createPlotlyComponent(Plotly);
     return (
         <Plot
             data={prepareData(props.timestamps, props.timeseries, props.sensors)}
-            layout={prepareLayout(theme, range)}
+            layout={layout}
             config={PlotConfig}
             style={{ width: "100%", height: "100%" }}
             onRelayout={(e) => {

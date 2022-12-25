@@ -337,6 +337,7 @@ export function App() {
             timestamps={state.buildingTimestamps}
             timeseries={state.sensorData}
             sensors={state.config.selectedSensors}
+            dateRange={state.config.buildingDateRange}
             zoomHintShown={state.plotZoomHintShown}
             onZoomHint={zoomHintCallback}
         />

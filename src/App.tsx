@@ -112,13 +112,15 @@ export function App() {
         onError: () => void = () => undefined,
         header: {} = {}
     ) {
+        class AlreadyHandledError extends Error{}
+
         function validateNetworkPromise(response: Response) {
             if (response.status === 200) {
                 return response.json();
             } else {
                 handleApiError(response);
                 onError();
-                throw new Error();
+                throw new AlreadyHandledError();
             }
         }
 
@@ -129,7 +131,10 @@ export function App() {
         fetch(url, header)
             .then((response) => validateNetworkPromise(response))
             .then((result) => action(result))
-            .catch(() => {
+            .catch(error => {
+                if(error instanceof AlreadyHandledError) {
+                    return;
+                }
                 handleNetworkError();
                 onError();
             });

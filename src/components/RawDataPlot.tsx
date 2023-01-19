@@ -89,6 +89,7 @@ function RawDataPlot(props: RawDataProps) {
                     width: 1,
                 },
                 fillcolor: "rgba(255,255,255,0.1)",
+                layer: "below",
             },
         ];
     }

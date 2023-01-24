@@ -274,6 +274,9 @@ export function App() {
 
     //One time side effects on first render
     useEffect(() => {
+        //Fetch initial preferred color scheme
+        dispatch({ type: "UpdateLightMode", isLightMode: window.matchMedia("(prefers-color-scheme: light)").matches })
+
         //Attach listener for light/dark mode.
         window
             .matchMedia("(prefers-color-scheme: light)")

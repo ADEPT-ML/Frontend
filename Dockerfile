@@ -1,4 +1,4 @@
-FROM node:19.3-alpine AS builder
+FROM node:19.3-slim AS builder
 WORKDIR /app
 COPY package.json package-lock.json .env ./
 RUN npm install
